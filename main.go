@@ -10,6 +10,7 @@ import (
 )
 
 type Episode struct {
+	Episode_id int
 	Title string
 	Audio []byte
 	Series_id int
@@ -17,13 +18,13 @@ type Episode struct {
 
 func main() {
 
-	db, err := sql.Open("sqlite", "./my.db")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	// db, err := sql.Open("sqlite", "./my.db")
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	return
+	// }
 
-	insertFolder("beef", db)
+	// insertFolder("beef", db)
 
 
 
