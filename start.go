@@ -30,6 +30,10 @@ func main() {
 		return
 	}
 	fmt.Printf("table %s created\n", name)
+
+
+	
+
 }
 
 func createTable(db *sql.DB, tableName string, columns map[string]string) error {

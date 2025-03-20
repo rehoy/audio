@@ -2,34 +2,42 @@ package handler
 
 import (
 	"database/sql"
-	_ "github.com/glebarez/go-sqlite"
 	"fmt"
-	"github.com/rehoy/audio/processor"
 	"log"
+
+	_ "github.com/glebarez/go-sqlite"
+	"github.com/rehoy/audio/processor"
 )
 
 type Episode struct {
 	Episode_id int
-	Title string
-	Audio []byte
-	Series_id int
+	Title      string
+	Audio      []byte
+	Series_id  int
 }
 
-func InsertSeries(series string, db *sql.DB) (sql.Result, error) {
-	return db.Exec("INSERT INTO series (name) VALUES (?)", series)
+type DB struct {
+	conn *sql.DB
 }
 
-func GetDB(path string) (*sql.DB, error) {
-	return sql.Open("sqlite", path)
+func NewDB(path string) (*DB, error) {
+	conn, err := sql.Open("sqlite", path)
+	if err != nil {
+		return nil, err
+	}
+	return &DB{conn: conn}, nil
 }
 
-func insertEpisode(episode Episode, db *sql.DB) (sql.Result, error) {
-	return db.Exec("INSERT INTO episodes (name, audio, series_id) VALUES (?, ?, ?)", episode.Title, episode.Audio, episode.Series_id)
+func (db *DB) InsertSeries(series string) (sql.Result, error) {
+	return db.conn.Exec("INSERT INTO series (name) VALUES (?)", series)
 }
 
-func insertFolder(folder string, db *sql.DB) error {
+func (db *DB) insertEpisode(episode Episode) (sql.Result, error) {
+	return db.conn.Exec("INSERT INTO episodes (name, audio, series_id) VALUES (?, ?, ?)", episode.Title, episode.Audio, episode.Series_id)
+}
 
-	series_id, err := getSeriesIDFromName("beef", "series", db)
+func (db *DB) insertFolder(folder string) error {
+	series_id, err := db.getSeriesIDFromName("beef", "series")
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -45,11 +53,11 @@ func insertFolder(folder string, db *sql.DB) error {
 
 	for _, mp3File := range mp3Files {
 		episode := Episode{
-			Title: mp3File,
-			Audio: mp3Blobs[mp3File],
+			Title:     mp3File,
+			Audio:     mp3Blobs[mp3File],
 			Series_id: series_id,
 		}
-		_, err := insertEpisode(episode, db)
+		_, err := db.insertEpisode(episode)
 		if err != nil {
 			log.Printf("Failed to insert episode %s: %v\n", episode.Title, err)
 		}
@@ -61,9 +69,9 @@ func insertFolder(folder string, db *sql.DB) error {
 	return nil
 }
 
-func getSeriesIDFromName(series, table string, db *sql.DB) (int, error) {
+func (db *DB) getSeriesIDFromName(series, table string) (int, error) {
 	var series_id int
-	err := db.QueryRow(fmt.Sprintf("SELECT series_id FROM %s WHERE name = ?", table), series).Scan(&series_id)
+	err := db.conn.QueryRow(fmt.Sprintf("SELECT series_id FROM %s WHERE name = ?", table), series).Scan(&series_id)
 	if err != nil {
 		return 0, err
 	}
@@ -71,13 +79,12 @@ func getSeriesIDFromName(series, table string, db *sql.DB) (int, error) {
 	return series_id, nil
 }
 
-func QueryRowById(id int, db *sql.DB) (*Episode, error) {
+func (db *DB) QueryRowById(id int) (*Episode, error) {
 	episode := &Episode{}
 
 	query := `SELECT episode_id, name, series_id, audio from episodes WHERE episode_id = ?`
 
-	row := db.QueryRow(query, id)
-	// fmt.Println(row)
+	row := db.conn.QueryRow(query, id)
 	err := row.Scan(&episode.Episode_id, &episode.Title, &episode.Series_id, &episode.Audio)
 	if err != nil {
 		return nil, fmt.Errorf("No episode found with id %d", id)
