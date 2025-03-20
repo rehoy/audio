@@ -18,7 +18,7 @@ func main() {
 		return
 	}
 
-	episode, err := db.QueryRowById(1)
+	episode, err := db.QueryRowById()
 	if err != nil {
 		fmt.Println(err)
 		return
