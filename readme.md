@@ -3,5 +3,11 @@
 - Oppdatere navn slik at det ikke er beef\navn og kanskje fjerne .mp3
 - serparere database og server?
 
-## drømmengi
+## drømmen
 ![Skisse](skisse.jpg)
+
+
+## pressende
+- helt klart en alternativ måte å håndtere podcaster er å ikke sende selve lydfilen.
+- Det tar 5 sekunder for 10 korte episoder.
+- Best er å sende for episoden når den er valgt!

@@ -9,13 +9,14 @@ import (
 	"github.com/rehoy/audio/processor"
 
 	"net/http"
+	"encoding/json"
 )
 
 type Episode struct {
-	Episode_id int
-	Title      string
-	Audio      []byte
-	Series_id  int
+	Episode_id int    `json:"episode_id"`
+	Title     string `json:"title"`
+	Audio     []byte `json:"audio"`
+	Series_id  int    `json:"series_id"`
 }
 
 type DB struct {
@@ -108,7 +109,6 @@ func (db *DB) HandleEpisode(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("Request for episode", name)
 
-
 	episode_id, err := db.getIDFromName(name, "episodes")
 	log.Println("episode_id", episode_id)
 
@@ -127,5 +127,49 @@ func (db *DB) HandleEpisode(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "audio/mpeg")
 	w.Write(episode.Audio)
+
+}
+
+func (db *DB) HandlePodcast(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+	title := query.Get("title")
+
+	if title == "" {
+		http.Error(w, "Missing title", http.StatusBadRequest)
+		log.Println("Missing title for podcast request")
+		return
+	}
+
+	series_id, err := db.getIDFromName(title, "series")
+	if err != nil {
+		log.Println("Failed to get series id", err, title)
+		http.Error(w, "Failed to get series id", http.StatusInternalServerError)
+		return
+	}
+
+	rows, err := db.conn.Query("SELECT episode_id, name, series_id, audio from episodes WHERE series_id = ?", series_id)
+	if err != nil {
+		log.Println("Failed to query episodes", err)
+		http.Error(w, "Failed to query episodes", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	episodes := make(map[string]*Episode)
+
+	for rows.Next() {
+		episode := &Episode{}
+		err := rows.Scan(&episode.Episode_id, &episode.Title, &episode.Series_id, &episode.Audio)
+		if err != nil {
+			log.Println("Failed to scan episode", err)
+			http.Error(w, "Failed to scan episode", http.StatusInternalServerError)
+			return
+		}
+
+		episodes[episode.Title] = episode
+
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(episodes)
 
 }

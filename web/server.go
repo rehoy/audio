@@ -25,6 +25,7 @@ func main() {
 	fs := http.FileServer(http.Dir("web"))
 	http.Handle("/", fs)
 	http.HandleFunc("/episode", db.HandleEpisode)
+	http.HandleFunc("/podcast", db.HandlePodcast)
 	fmt.Println("Server listening on port", portnumber)
 	http.ListenAndServe(":" + portnumber, nil)
 }

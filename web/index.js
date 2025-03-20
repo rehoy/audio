@@ -14,3 +14,21 @@ document.getElementById('audio').addEventListener('click', () => {
             audio.play();
         });
 });
+
+
+document.getElementById('podcast').addEventListener('click', () => {
+    console.log("podcast button is clicked");
+
+    const fileName = "beef";
+    const url = `http://localhost:8080/podcast?title=${encodeURIComponent(fileName)}`;
+    console.log(url);
+
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            console.log("Podcast data:", data);
+        })
+        .catch(error => {
+            console.error("Error fetching podcast data:", error);
+        });
+})
