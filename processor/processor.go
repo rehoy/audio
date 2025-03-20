@@ -3,7 +3,7 @@ package processor
 import (
 	"os"
 	"path/filepath"
-	"database/sql"
+	_ "github.com/glebarez/go-sqlite"
 )
 
 func ReadMP3Files(directory string) ([]string, map[string][]byte, error) {
@@ -34,8 +34,4 @@ func ReadMP3Files(directory string) ([]string, map[string][]byte, error) {
 	}
 
 	return mp3Files, mp3Blobs, nil
-}
-
-func InsertSeries(series string, db *sql.DB) (sql.Result, error) {
-	return db.Exec("INSERT INTO series (name) VALUES (?)", series)
 }
