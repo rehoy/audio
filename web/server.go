@@ -10,8 +10,6 @@ func slashHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello, world!")
 }
 func main() {
-	fmt.Println("Hello, World!")
-
 	portnumber := "8080"
 
 	db, err := handler.NewDB("./my.db")
@@ -19,7 +17,14 @@ func main() {
 		fmt.Println(err)
 		return
 	}
-	
-	http.HandleFunc("/", slashHandler)
+	defer db.Close()
+
+
+
+	// http.HandleFunc("/", slashHandler)
+	fs := http.FileServer(http.Dir("web"))
+	http.Handle("/", fs)
+	http.HandleFunc("/episode", db.HandleEpisode)
+	fmt.Println("Server listening on port", portnumber)
 	http.ListenAndServe(":" + portnumber, nil)
 }

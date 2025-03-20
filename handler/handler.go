@@ -7,6 +7,8 @@ import (
 
 	_ "github.com/glebarez/go-sqlite"
 	"github.com/rehoy/audio/processor"
+
+	"net/http"
 )
 
 type Episode struct {
@@ -37,7 +39,7 @@ func (db *DB) insertEpisode(episode Episode) (sql.Result, error) {
 }
 
 func (db *DB) insertFolder(folder string) error {
-	series_id, err := db.getSeriesIDFromName("beef", "series")
+	series_id, err := db.getIDFromName("beef", "series")
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -69,7 +71,7 @@ func (db *DB) insertFolder(folder string) error {
 	return nil
 }
 
-func (db *DB) getSeriesIDFromName(series, table string) (int, error) {
+func (db *DB) getIDFromName(series, table string) (int, error) {
 	var series_id int
 	err := db.conn.QueryRow(fmt.Sprintf("SELECT series_id FROM %s WHERE name = ?", table), series).Scan(&series_id)
 	if err != nil {
@@ -91,5 +93,39 @@ func (db *DB) QueryRowById(id int) (*Episode, error) {
 	}
 
 	return episode, nil
+
+}
+
+func (db *DB) Close() error {
+	return db.conn.Close()
+}
+
+func (db *DB) HandleEpisode(w http.ResponseWriter, r *http.Request) {
+
+	query := r.URL.Query()
+	// id := query.Get("id")
+	name := query.Get("name")
+
+	log.Println("Request for episode", name)
+
+
+	episode_id, err := db.getIDFromName(name, "episodes")
+	log.Println("episode_id", episode_id)
+
+	if err != nil {
+		log.Println("Failed to get episode id", err, name)
+		http.Error(w, "Failed to get episode id", http.StatusInternalServerError)
+		return
+	}
+
+	episode, err := db.QueryRowById(episode_id)
+	if err != nil {
+		log.Println("Failed to query episode", err, episode_id)
+		http.Error(w, "Failed to query episode", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "audio/mpeg")
+	w.Write(episode.Audio)
 
 }
