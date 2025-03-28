@@ -1,0 +1,71 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://unpkg.com/htmx.org@1.7.0"></script>
+  <title>Podcast player</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div hx-get="/navbar" hx-trigger="load">Loading navbar</div>
+  <div class="podcast-container">
+      <div hx-get="/podcast" hx-swap="outerhtml" hx-trigger="load">Loading please wait</div>
+  </div>
+  <div id="modal" class="modal hidden"></div>
+  <div id="player" hx-get="/player" hx-trigger="load">Loading _\|/_</div>
+</body>
+
+<script>
+  // Helper function to attach hover timer handlers to the episode-title elements.
+  function attachEpisodeHoverHandlers() {
+      const episodesContainer = document.querySelector('.episodes');
+      if (!episodesContainer) {
+          console.log("No episodes container found");
+          return;
+      }
+      
+      // Remove any previous listeners to avoid duplicate bindings
+      episodesContainer.removeEventListener("mouseover", onEpisodeMouseOver);
+      episodesContainer.removeEventListener("mouseout", onEpisodeMouseOut);
+      
+      episodesContainer.addEventListener("mouseover", onEpisodeMouseOver);
+      episodesContainer.addEventListener("mouseout", onEpisodeMouseOut);
+  }
+  
+  function onEpisodeMouseOver(event) {
+      const episodeTitle = event.target.closest(".episode-title");
+      if (!episodeTitle) return;
+      
+      // Only set a timer if one isn't already there
+      if (!episodeTitle.dataset.timer) {
+          const timer = setTimeout(function () {
+            const episode = episodeTitle.closest(".episode");
+            if (!episode) return;
+            console.log(episode.id);
+            htmx.ajax('GET', '/modal?id=' + episode.id, {target: '#modal', swap: 'innerHTML'});
+          }, 2000);
+          episodeTitle.dataset.timer = timer;
+      }
+  }
+  
+  function onEpisodeMouseOut(event) {
+      const episodeTitle = event.target.closest(".episode-title");
+      if (!episodeTitle || !episodeTitle.dataset.timer) return;
+      
+      clearTimeout(episodeTitle.dataset.timer);
+      delete episodeTitle.dataset.timer;
+  }
+  
+  // Attach on DOMContentLoaded in case .episodes is already present
+  document.addEventListener("DOMContentLoaded", attachEpisodeHoverHandlers);
+  
+  // Listen for HTMX after swap events to attach handlers when /podcast loads
+  document.body.addEventListener("htmx:afterSwap", function (event) {
+      // Check if the swapped content contains the episodes container
+      if (event.detail.target && event.detail.target.querySelector('.episodes')) {
+          attachEpisodeHoverHandlers();
+      }
+  });
+</script>
+
+</html>

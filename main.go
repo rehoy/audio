@@ -2,36 +2,34 @@ package main
 
 import (
 	"fmt"
-	_ "github.com/glebarez/go-sqlite"
-	"github.com/rehoy/audio/handler"
-	"github.com/rehoy/audio/processor"
+	"net/http"
+	"github.com/rehoy/audioplayer/server"
+	"time"
+	"log"
+	
+
 )
 
-
-
 func main() {
-	fmt.Println("Hello, World!")
+	s := server.NewServer()
+	s.SetupServer("templates")
 
-	db, err := handler.NewDB("./my.db")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	http.Handle("/style.css", http.FileServer(http.Dir(".")))
 
-	episode, err := db.QueryRowById()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	fmt.Println("listening on http://localhost:8080/")
 
-	fmt.Println(episode.Title, episode.Series_id, episode.Episode_id, len(episode.Audio))
-
-	err = processor.EncodeToMP3(episode.Audio, "output/output.mp3")
-	if err != nil {
-		fmt.Println("failed to encode mp3", err)
-		return
-	}
-	fmt.Println("encoded MP3")
+	go func() {
+		err := http.ListenAndServe(":8080", nil)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}();
 	
+	index := 0
+	for {
+		fmt.Println(index)
+		index++
+		time.Sleep(time.Second * 1)
+	}
 
 }

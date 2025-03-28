@@ -1,0 +1,26 @@
+{{define "episode"}}
+<div id="{{.ID}}" class="episode" hx-get="/episode?id={{.ID}}" hx-trigger="click" hx-target="#player">
+    <img class="thumbnail" src="{{.ImageURL}}" alt="image url">
+    <h2 class="episode-title">{{.Title}}</h2>
+    <audio controls>
+        <source src="{{.AudioURL}}" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+</div>
+{{end}}
+
+
+<html>
+    <head>
+    </head>
+    <body>
+        <h1 class="podcast-title">{{.Title}}</h1>
+        <div class="episodes">
+            {{range $key, $episode := .Episodes}}
+                {{template "episode" $episode}}
+            {{end}}
+        </div>
+    </body>
+</html>
+
+

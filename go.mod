@@ -1,11 +1,10 @@
-module github.com/rehoy/audio
+module github.com/rehoy/audioplayer
 
 go 1.23.1
 
 require (
 	github.com/glebarez/go-sqlite v1.22.0
 	github.com/mmcdole/gofeed v1.3.0
-	github.com/viert/go-lame v0.0.0-20201108052322-bb552596b11d
 )
 
 require (

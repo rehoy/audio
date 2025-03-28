@@ -1,0 +1,185 @@
+body {
+    /* Ensure the body takes up the full viewport height */
+    height: 100vh;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    /* Prevent scrolling on the body */
+    font-family: Arial, sans-serif;
+}
+
+button {
+    margin-top: 20px;
+    padding: 10px 20px;
+}
+
+.info-card-wrapper {
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+    padding: 16px;
+    max-width: 300px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px #ccc;
+}
+
+.info-card-header {
+    border-bottom: 1px solid #ccc;
+}
+
+.navbar {
+    /* Keep the navbar fixed at the top */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    /* Center align items */
+    align-items: center;
+    background-color: #333;
+    padding: 10px 20px;
+    color: white;
+    height: 100px;
+}
+
+.navbar .navbar-links {
+    display: flex;
+    gap: 20px;
+    /* Optionally space out links */
+}
+
+.navbar a {
+    color: white;
+    text-decoration: none;
+}
+
+.navbar a:hover {
+    text-decoration: underline;
+}
+
+.podcast-container {
+    /* Make the podcast-container fill the space between navbar and podcast-player */
+    flex: 1;
+    overflow-y: auto;
+    /* Enable scrolling for this section */
+    margin-top: 100px;
+    /* Adjust for navbar height */
+    margin-bottom: 200px;
+    /* Adjust for podcast-player height */
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-bottom: 20px;
+    align-items: center;
+}
+
+.podcast-title {
+    align-items: center;
+    justify-content: center;
+}
+
+.podcast-player {
+    /* Keep the podcast-player fixed at the bottom */
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    height: 200px;
+    /* Adjust as needed */
+    background-color: rgb(110, 110, 110);
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.podcast-player-inner {
+    display: flex;
+    align-items: center;
+}
+
+.podcast-player-image {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+}
+
+.podcast-player-details {
+    width: 300px;
+    margin-left: 20px;
+}
+
+.podcastplayer-title {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.play-indicator {
+    font-size: 16px;
+    color: #555;
+}
+
+.episodes {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(3, 1fr);
+    /* 3 columns */
+    gap: 1rem;
+}
+
+.episode {
+    border: 1px solid #cacaca;
+    padding: 1rem;
+    box-sizing: border-box;
+    width: 400px;
+}
+
+.episode img.thumbnail {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+}
+
+@media (max-width: 768px) {
+    .episodes {
+        grid-template-columns: 1fr 1fr;
+        /* 2 columns for smaller screens */
+    }
+}
+
+@media (max-width: 480px) {
+    .episodes {
+        grid-template-columns: 1fr;
+        /* Single column for very small screens */
+    }
+}
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+/* Hide modal by default */
+.hidden {
+    display: none;
+}
+
+/* Modal content styling */
+.modal-content {
+    background: white;
+    padding: 2em;
+    border-radius: 5px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}

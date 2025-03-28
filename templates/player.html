@@ -1,0 +1,16 @@
+<div class="podcast-player">
+    <div class="podcast-player-inner">
+        <img src="{{.ImageURL}}" alt="podcast image" class="podcast-player-image">
+        <div class="podcast-player-details">
+            <div class="podcastplayer-title">
+                {{.Title}}
+            </div>
+            <div class="podcastplayer-audio">
+                <audio controls>
+                    <source src="{{.AudioURL}}" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </div>
+        </div>
+    </div>
+</div>
