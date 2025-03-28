@@ -5,7 +5,7 @@
 - Legge til funksjonalitet for å skrive podcaster til `podcasts.json` i stedet for å laste ned episoder.
 
 ## drømmen
-![Skisse](skisse.jpg)
+![Skisse](images/skisse.jpg)
 
 ## pressende
 - helt klart en alternativ måte å håndtere podcaster er å ikke sende selve lydfilen.

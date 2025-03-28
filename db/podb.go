@@ -1,4 +1,4 @@
-package main
+package podb
 
 import (
 	"database/sql"
@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"flag"
 
 	_ "github.com/glebarez/go-sqlite"
 	"github.com/mmcdole/gofeed"
@@ -99,7 +98,6 @@ func (db *DB)AddPodcastToDB(jsonPath, name, database string) error {
 
 	return nil
 }
-
 
 func (db *DB) insertEpisode(episode Episode, seriesID int) (int, error) {
 	query := "INSERT INTO episodes (title, pubdate, description, audiourl, imageurl, series_id) VALUES (?, ?, ?, ?, ?, ?)"
@@ -220,37 +218,7 @@ func WritePodcastsToJSON(feedURL, jsonPath string) error {
 	return nil
 }
 
-func main(){
-	
-	db := NewDB()
-	defer db.Close()
 
-	db.Check()
-
-	name := flag.String("name", "", "Name of podcast to add to database")
-	rss := flag.String("rss", "", "RSS feed URL")
-
-
-	flag.Parse()
-
-	if *name != "" {
-		err := db.AddPodcastToDB("podcasts.json", *name, "pod.db")
-		if err != nil {
-			fmt.Println("Error adding podcast to database:", err)
-			return
-		}
-	}
-
-	if *rss != "" {
-		
-		err := WritePodcastsToJSON(*rss, "podcasts.json")
-		if err != nil {
-			fmt.Println("Error writing podcasts to JSON:", err)
-			return
-		}
-		fmt.Println("Added rss to podcasts.json", )
-	}
-}
 
 
 
