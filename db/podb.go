@@ -15,6 +15,7 @@ import (
 )
 
 type Episode struct {
+	
 	Title string `json:"title"`
 	Pubdate string `json:"pubdate"`
 	Description string `json:"description"`
@@ -218,7 +219,105 @@ func WritePodcastsToJSON(feedURL, jsonPath string) error {
 	return nil
 }
 
+func (db *DB) seriesNameFromID(seriesID int) (string, error) {
+	var title string
+	query := "SELECT title FROM series WHERE id = ?"
+	err := db.conn.QueryRow(query, seriesID).Scan(&title)
+	if err != nil {
+		return "", fmt.Errorf("Error querying series name: %v", err)
+	}
+	return title, nil
+}
+func (db *DB) GetEpisodesFromSeries(args ...any) ([]Episode, error) {
+	var seriesID int
+	var err error 
+
+
+	switch args[0].(type) {
+	case string:
+		seriesID, err = db.getSeriesIDByName(args[0].(string))
+		if err != nil {
+			return nil, fmt.Errorf("Error getting series ID by name: %v", err)
+		}
+	case int:
+		seriesID = args[0].(int)
+	default:
+		return nil, fmt.Errorf("Invalid argument type: %T", args[0])
+	}
+
+	query := "SELECT title, pubdate, description, audiourl, imageurl FROM episodes WHERE series_id = ?"
+
+	fmt.Println("seriesID:", seriesID, "arg:", args[0].(string))
+	rows, err := db.conn.Query(query, seriesID)
+	if err != nil {
+		return nil, fmt.Errorf("Error querying episodes: %v", err)
+	}
+	defer rows.Close()
+
+	episodes := make([]Episode, 0)
+	for rows.Next() {
+		var episode Episode
+		var pubdate string
+		err := rows.Scan(&episode.Title, &pubdate, &episode.Description, &episode.AudioURL, &episode.ImageURL)
+		if err != nil {
+			return nil, fmt.Errorf("Error scanning episode: %v", err)
+		}
+		episode.Pubdate = pubdate
+		episodes = append(episodes, episode)
+	}
+	
+	return episodes, nil
+}
+
+func (db *DB) getSeriesIDByName(seriesName string) (int, error) {
+	var seriesID int
+	query := "SELECT series_id FROM series WHERE title = ?"
+	err := db.conn.QueryRow(query, seriesName).Scan(&seriesID)
+	if err != nil {
+		return 0, fmt.Errorf("Error querying series ID by name: %v", err)
+	}
+	return seriesID, nil
+}
 
 
 
+//package dbhandler
+// package main 
 
+// import (
+// 	"github.com/rehoy/audioplayer/db"
+// 	"flag"
+// 	"fmt"
+// )
+
+// func main(){
+	
+// 	db := podb.NewDB()
+// 	defer db.Close()
+
+// 	db.Check()
+
+// 	name := flag.String("name", "", "Name of podcast to add to database")
+// 	rss := flag.String("rss", "", "RSS feed URL")
+
+
+// 	flag.Parse()
+
+// 	if *name != "" {
+// 		err := db.AddPodcastToDB("podcasts.json", *name, "pod.db")
+// 		if err != nil {
+// 			fmt.Println("Error adding podcast to database:", err)
+// 			return
+// 		}
+// 	}
+
+// 	if *rss != "" {
+		
+// 		err := podb.WritePodcastsToJSON(*rss, "podcasts.json")
+// 		if err != nil {
+// 			fmt.Println("Error writing podcasts to JSON:", err)
+// 			return
+// 		}
+// 		fmt.Println("Added rss to podcasts.json", )
+// 	}
+//}

@@ -4,8 +4,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://unpkg.com/htmx.org@1.7.0"></script>
   <title>Podcast player</title>
-  <link rel="icon" href="favicon.ico" type="image/x-icon">
   <link rel="stylesheet" href="style.css">
+
+  <div id="favicon-placeholder" hx-get="/favicon" hx-trigger="load" hx-target="head" hx-swap="beforeend"></div>
 </head>
 <body>
   <div hx-get="/navbar" hx-trigger="load">Loading navbar</div>

@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"github.com/rehoy/audioplayer/db"
 )
 
 type Person struct {
@@ -35,11 +36,15 @@ type Episode struct {
 type Server struct {
 	Podcast *Podcast
 	TemplateDirectory string
+	DB *podb.DB
 }
 
 func NewServer() *Server {
+	db := podb.NewDB()
+	
 	return &Server{
 		Podcast: loadPodcast(),
+		DB: db,
 	}
 }
 
@@ -113,6 +118,25 @@ func (s *Server) podcastHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+
+	podcast_name := "Underunderstood"
+	episodes, err := s.DB.GetEpisodesFromSeries(podcast_name)
+	if err != nil {
+		fmt.Println("Error getting episodes from series:", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	episodeMap := make(map[string]Episode)
+	for _, episode := range episodes {
+		episodeMap[episode.Title] = episode
+	}
+
+	Podcast := Podcast{
+		Title:       podcast_name,
+		Description: "A podcast about the unknown",
+
 	}
 
 	w.Header().Set("Content-Type", "text/html")
@@ -249,6 +273,21 @@ func (s *Server) closeModalHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (s *Server) faviconHandler(w http.ResponseWriter, r *http.Request) {
+	podcast_name := "Underunderstood"
+	episodes, err := s.DB.GetEpisodesFromSeries(podcast_name)
+	if err != nil {
+		fmt.Println("Error getting episodes from series:", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	episode := episodes[0]
+	imageURL := episode.ImageURL
+	fmt.Println(imageURL, len(episodes), )
+    w.Header().Set("Content-Type", "text/html")
+    fmt.Fprintf(w, `<link rel="icon" href="%s" type="image/png">`, imageURL)
+}
+
 func (s *Server) getEpisode(id int) Episode {
 	for _, value := range s.Podcast.Episodes {
 		if value.ID == id {
@@ -269,4 +308,5 @@ func(s *Server) SetupServer(folder string) {
 	http.HandleFunc("/episode", s.episodeHandler)
 	http.HandleFunc("/modal", s.modalHandler)
 	http.HandleFunc("/closemodal", s.closeModalHandler)
+	http.HandleFunc("/favicon", s.faviconHandler)
 }
