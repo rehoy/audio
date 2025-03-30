@@ -9,18 +9,17 @@ import (
 	"strings"
 	"time"
 
-
 	_ "github.com/glebarez/go-sqlite"
 	"github.com/mmcdole/gofeed"
 )
 
 type Episode struct {
-	
-	Title string `json:"title"`
-	Pubdate string `json:"pubdate"`
+	Episode_id  int    `json:"episode_id"`
+	Title       string `json:"title"`
+	Pubdate     string `json:"pubdate"`
 	Description string `json:"description"`
-	AudioURL string `json:"audioURL"`
-	ImageURL string `json:"imageURL"`
+	AudioURL    string `json:"audioURL"`
+	ImageURL    string `json:"imageURL"`
 }
 type Podcast struct {
 	Title       string
@@ -28,21 +27,21 @@ type Podcast struct {
 	Episodes    map[string]Episode
 }
 
-func (db *DB)Check() {
+func (db *DB) Check() {
 	var version string
-
 
 	err := db.conn.QueryRow("SELECT sqlite_version()").Scan(&version)
 	if err != nil {
 		fmt.Println("Error querying database version", err)
 		return
-	} 
+	}
 	fmt.Println("SQLite version:", version)
-} 
+}
 
 type DB struct {
 	conn *sql.DB
 }
+
 func (db *DB) Close() {
 	db.conn.Close()
 }
@@ -56,8 +55,7 @@ func NewDB() *DB {
 	return &DB{conn: conn}
 }
 
-
-func (db *DB)AddPodcastToDB(jsonPath, name, database string) error {
+func (db *DB) AddPodcastToDB(jsonPath, name, database string) error {
 
 	var podcasts map[string]Podcast
 
@@ -71,20 +69,14 @@ func (db *DB)AddPodcastToDB(jsonPath, name, database string) error {
 		return fmt.Errorf("Error decoding JSON: %v", err)
 	}
 
-	for key:=range podcasts{
-		fmt.Println(key)
-	}
-
-
-
-	podcast, ok := podcasts[strings.Trim(name , " ")]
+	podcast, ok := podcasts[strings.Trim(name, " ")]
 	if !ok {
 		return fmt.Errorf("Podcast not found: %v", name)
 	}
 
 	fmt.Println("podcast title:", podcast.Title, ", number of episodes:", len(podcast.Episodes))
 
-	id, err := db.insertSeries(podcast.Title)
+	id, err := db.insertSeries(podcast.Title, podcast.Description)
 	if err != nil {
 		return fmt.Errorf("%v", err)
 	}
@@ -121,8 +113,8 @@ func (db *DB) insertEpisode(episode Episode, seriesID int) (int, error) {
 	return int(id), nil
 
 }
-func (db *DB) insertSeries(title string) (int, error) {
-	res, err := db.conn.Exec("INSERT INTO series (title) VALUES (?)", title)
+func (db *DB) insertSeries(title, description string) (int, error) {
+	res, err := db.conn.Exec("INSERT INTO series (title, description) VALUES (?, ?)", title, description)
 	if err != nil {
 		return 0, fmt.Errorf("Error inserting series: %v", err)
 	}
@@ -228,10 +220,10 @@ func (db *DB) seriesNameFromID(seriesID int) (string, error) {
 	}
 	return title, nil
 }
+
 func (db *DB) GetEpisodesFromSeries(args ...any) ([]Episode, error) {
 	var seriesID int
-	var err error 
-
+	var err error
 
 	switch args[0].(type) {
 	case string:
@@ -245,7 +237,7 @@ func (db *DB) GetEpisodesFromSeries(args ...any) ([]Episode, error) {
 		return nil, fmt.Errorf("Invalid argument type: %T", args[0])
 	}
 
-	query := "SELECT title, pubdate, description, audiourl, imageurl FROM episodes WHERE series_id = ?"
+	query := "SELECT episode_id, title, pubdate, description, audiourl, imageurl FROM episodes WHERE series_id = ?"
 
 	fmt.Println("seriesID:", seriesID, "arg:", args[0].(string))
 	rows, err := db.conn.Query(query, seriesID)
@@ -258,14 +250,14 @@ func (db *DB) GetEpisodesFromSeries(args ...any) ([]Episode, error) {
 	for rows.Next() {
 		var episode Episode
 		var pubdate string
-		err := rows.Scan(&episode.Title, &pubdate, &episode.Description, &episode.AudioURL, &episode.ImageURL)
+		err := rows.Scan(&episode.Episode_id, &episode.Title, &pubdate, &episode.Description, &episode.AudioURL, &episode.ImageURL)
 		if err != nil {
 			return nil, fmt.Errorf("Error scanning episode: %v", err)
 		}
 		episode.Pubdate = pubdate
 		episodes = append(episodes, episode)
 	}
-	
+
 	return episodes, nil
 }
 
@@ -279,10 +271,21 @@ func (db *DB) getSeriesIDByName(seriesName string) (int, error) {
 	return seriesID, nil
 }
 
+func (db *DB) GetEpisode(id int) Episode {
+	query := "SELECT episode_id, title, pubdate, description, audiourl, imageurl FROM episodes WHERE episode_id = ?"
+	row := db.conn.QueryRow(query, id)
 
+	var episode Episode
+	err := row.Scan(&episode.Episode_id, &episode.Title, &episode.Pubdate, &episode.Description, &episode.AudioURL, &episode.ImageURL)
+	if err != nil {
+		fmt.Println("Error getting episode:", err)
+		return Episode{}
+	}
+	return episode
+}
 
 //package dbhandler
-// package main 
+// package main
 
 // import (
 // 	"github.com/rehoy/audioplayer/db"
@@ -291,7 +294,7 @@ func (db *DB) getSeriesIDByName(seriesName string) (int, error) {
 // )
 
 // func main(){
-	
+
 // 	db := podb.NewDB()
 // 	defer db.Close()
 
@@ -299,7 +302,6 @@ func (db *DB) getSeriesIDByName(seriesName string) (int, error) {
 
 // 	name := flag.String("name", "", "Name of podcast to add to database")
 // 	rss := flag.String("rss", "", "RSS feed URL")
-
 
 // 	flag.Parse()
 
@@ -312,7 +314,7 @@ func (db *DB) getSeriesIDByName(seriesName string) (int, error) {
 // 	}
 
 // 	if *rss != "" {
-		
+
 // 		err := podb.WritePodcastsToJSON(*rss, "podcasts.json")
 // 		if err != nil {
 // 			fmt.Println("Error writing podcasts to JSON:", err)

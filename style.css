@@ -183,3 +183,30 @@ button {
     border-radius: 5px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
+
+audio {
+    width: 100%;
+    max-width: 400px;
+    background: #222;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    outline: none;
+}
+
+/* Customize WebKit media controls */
+audio::-webkit-media-controls-panel {
+    background-color: #333;
+    border-radius: 8px;
+}
+
+audio::-webkit-media-controls-play-button,
+audio::-webkit-media-controls-volume-slider,
+audio::-webkit-media-controls-mute-button,
+audio::-webkit-media-controls-overflow-menu-button {
+    filter: invert(80%);
+}
+
+/* Optional: hover effects for controls (WebKit only) */
+audio::-webkit-media-controls-panel:hover {
+    background-color: #444;
+}
