@@ -52,7 +52,7 @@ func loadPodcast() *podb.Podcast {
 }
 
 func (s *Server) indexHandler(w http.ResponseWriter, r *http.Request) {
-	tmpl, err := template.ParseFiles(s.TemplateDirectory + "/" + "index.html")
+	tmpl, err := template.ParseFiles(s.TemplateDirectory + "/main/" + "index.html")
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -100,7 +100,7 @@ func (s *Server) clickHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) podcastHandler(w http.ResponseWriter, r *http.Request) {
-	tmpl, err := template.ParseFiles(s.TemplateDirectory + "/" + "podcast.html")
+	tmpl, err := template.ParseFiles(s.TemplateDirectory + "/main/" + "podcast.html")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -140,7 +140,7 @@ func (s *Server) podcastHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) navbarHandler(w http.ResponseWriter, r *http.Request) {
-	tmpl, err := template.ParseFiles(s.TemplateDirectory + "/" + "navbar.html")
+	tmpl, err := template.ParseFiles(s.TemplateDirectory + "/header/" + "navbar.html")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -163,7 +163,7 @@ func (s *Server) playerHandler(w http.ResponseWriter, r *http.Request) {
 		AudioURL:    "unknown",
 		ImageURL:    "unknown",
 	}
-	tmpl, err := template.ParseFiles(s.TemplateDirectory + "/" + "player.html")
+	tmpl, err := template.ParseFiles(s.TemplateDirectory + "/footer/" + "player.html")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -193,7 +193,7 @@ func (s *Server) episodeHandler(w http.ResponseWriter, r *http.Request) {
 
 	episode := s.DB.GetEpisode(id)
 
-	tmpl, err := template.ParseFiles(s.TemplateDirectory + "/" + "player.html")
+	tmpl, err := template.ParseFiles(s.TemplateDirectory + "/footer/" + "player.html")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -229,7 +229,7 @@ func (s *Server) modalHandler(w http.ResponseWriter, r *http.Request) {
 		episode = s.DB.GetEpisode(id)
 	}
 
-	tmpl, err := template.ParseFiles(s.TemplateDirectory + "/" + "modal.html")
+	tmpl, err := template.ParseFiles(s.TemplateDirectory + "/main/" + "modal.html")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -244,7 +244,7 @@ func (s *Server) modalHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) closeModalHandler(w http.ResponseWriter, r *http.Request) {
-	tmpl, err := template.ParseFiles(s.TemplateDirectory + "/" + "closeModal.html")
+	tmpl, err := template.ParseFiles(s.TemplateDirectory + "/main/" + "closeModal.html")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -283,7 +283,7 @@ func (s *Server) getEpisode(id int) podb.Episode {
 }
 
 func (s *Server) selectorHandler(w http.ResponseWriter, r *http.Request) {
-	tmpl, err := template.ParseFiles(s.TemplateDirectory + "/" + "podcast-selector.html")
+	tmpl, err := template.ParseFiles(s.TemplateDirectory + "/main/" + "podcast-selector.html")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
