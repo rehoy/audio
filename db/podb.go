@@ -284,6 +284,29 @@ func (db *DB) GetEpisode(id int) Episode {
 	return episode
 }
 
+func (db *DB) GetSeries() ([]string, error) {
+	query := "SELECT title FROM series"
+	rows, err := db.conn.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("Error querying series: %v", err)
+	}
+	defer rows.Close()
+
+	var series []string 
+
+	for rows.Next() {
+		var title string
+		err := rows.Scan(&title)
+		if err != nil {
+			return nil, fmt.Errorf("Error scanning series title: %v", err)
+		}
+
+		series = append(series, title)
+	}
+
+	return series, nil
+}
+
 //package dbhandler
 // package main
 

@@ -19,7 +19,6 @@ type Person struct {
 	EyeColor string
 }
 
-
 type Server struct {
 	Podcast           *podb.Podcast
 	TemplateDirectory string
@@ -130,7 +129,6 @@ func (s *Server) podcastHandler(w http.ResponseWriter, r *http.Request) {
 		Title:       podcast_name,
 		Description: "A podcast about the unknown",
 		Episodes:    episodeMap,
-
 	}
 
 	w.Header().Set("Content-Type", "text/html")
@@ -158,7 +156,7 @@ func (s *Server) navbarHandler(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) playerHandler(w http.ResponseWriter, r *http.Request) {
 	episode := podb.Episode{
-		Episode_id:          0,
+		Episode_id:  0,
 		Title:       "unknown",
 		Pubdate:     "unknown",
 		Description: "unknown",
@@ -214,7 +212,7 @@ func (s *Server) modalHandler(w http.ResponseWriter, r *http.Request) {
 	var episode podb.Episode
 	if id_string == "" {
 		episode = podb.Episode{
-			Episode_id:          0,
+			Episode_id:  0,
 			Title:       "unknown",
 			Pubdate:     "unknown",
 			Description: "unknown modal description",
@@ -291,8 +289,20 @@ func (s *Server) selectorHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	titles, err := s.DB.GetSeries()
+	if err != nil {
+
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	fmt.Println("Podcast titles", titles)
+	podcast_titles := struct {
+		PodcastTitles []string
+	}{titles}
+
 	w.Header().Set("content-type", "text/html")
-	err = tmpl.Execute(w, nil)
+	err = tmpl.Execute(w, podcast_titles)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
