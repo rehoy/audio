@@ -1,11 +1,9 @@
 body {
-    /* Ensure the body takes up the full viewport height */
     height: 100vh;
     margin: 0;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    /* Prevent scrolling on the body */
     font-family: Arial, sans-serif;
 }
 
@@ -28,19 +26,16 @@ button {
 }
 
 .navbar {
-    /* Keep the navbar fixed at the top */
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     z-index: 1000;
-    display: flex;
-    justify-content: center;
-    /* Center align items */
-    align-items: center;
     background-color: #333;
-    padding: 10px 20px;
     color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     height: 100px;
 }
 
@@ -60,8 +55,6 @@ button {
 }
 
 .podcast-container {
-    margin-top: 100px;    /* adjust according to your navbar height */
-    margin-bottom: 200px; /* adjust according to your podcast-player height */
     overflow-y: hidden;
 }
 
@@ -74,7 +67,8 @@ button {
 
 /* Make the episodes scrollable */
 .episodes-wrapper {
-    max-height: calc(100vh - 300px); /* subtract constant heights (navbar, header, player) */
+    max-height: calc(100vh - 300px);
+    /* subtract constant heights (navbar, header, player) */
     overflow-y: auto;
 }
 
@@ -100,9 +94,11 @@ button {
 
 .main-container {
     flex: 1;
-    overflow-y: hidden;
+    overflow-y: auto;
     margin-top: 100px;
-    padding-bottom: 200px;
+    padding: 20px;
+    /* Add a border if needed */
+    border: 1px solid #ccc;
 }
 
 .podcast-title {
@@ -111,19 +107,17 @@ button {
 }
 
 .podcast-player {
-    /* Keep the podcast-player fixed at the bottom */
     position: fixed;
     bottom: 0;
     left: 0;
     width: 100%;
     z-index: 1000;
-    height: 150px;
-    /* Adjust as needed */
     background-color: rgb(110, 110, 110);
-    padding: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 20px;
+    height: 150px;
 }
 
 .podcast-player-inner {

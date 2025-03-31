@@ -55,24 +55,25 @@ func NewDB() *DB {
 	return &DB{conn: conn}
 }
 
-func (db *DB) AddPodcastToDB(jsonPath, name, database string) error {
+func (db *DB) AddPodcastToDB(rssFeed, database string) error {
 
-	var podcasts map[string]Podcast
-
-	file, err := os.Open(jsonPath)
+	podcast, err := db.podcastFromFeed(rssFeed)
 	if err != nil {
-		return fmt.Errorf("Error opening file: %v", err)
+		return fmt.Errorf("failed to parse podcast feed: %w", err)
 	}
-
-	err = json.NewDecoder(file).Decode(&podcasts)
+	// Check if the podcast already exists in the database
+	existingPodcasts, err := db.GetSeries()
 	if err != nil {
-		return fmt.Errorf("Error decoding JSON: %v", err)
+		return fmt.Errorf("failed to get existing podcasts: %w", err)
 	}
-
-	podcast, ok := podcasts[strings.Trim(name, " ")]
-	if !ok {
-		return fmt.Errorf("Podcast not found: %v", name)
+	// Check if the podcast title already exists in the database
+	for _, existingPodcast := range existingPodcasts {
+		if strings.EqualFold(existingPodcast, podcast.Title) {
+			fmt.Printf("Podcast '%s' already exists in the database.\n", podcast.Title)
+			return nil
+		}
 	}
+	
 
 	fmt.Println("podcast title:", podcast.Title, ", number of episodes:", len(podcast.Episodes))
 
@@ -144,11 +145,11 @@ func (db *DB) pubdateToTimeStamp(pubdate string) (time.Time, error) {
 
 }
 
-func WritePodcastsToJSON(feedURL, jsonPath string) error {
+func (db *DB) podcastFromFeed(feedURL string) (Podcast, error) {
 	fp := gofeed.NewParser()
 	feed, err := fp.ParseURL(feedURL)
 	if err != nil {
-		return fmt.Errorf("failed to parse RSS feed: %w", err)
+		return Podcast{}, fmt.Errorf("failed to parse RSS feed: %w", err)
 	}
 
 	// Use the itunes:image tag from the channel as the default image
@@ -179,6 +180,19 @@ func WritePodcastsToJSON(feedURL, jsonPath string) error {
 		podcast.Episodes[episode.Title] = episode
 	}
 
+	return podcast, nil
+
+}
+
+func (db *DB)WritePodcastsToJSON(feedURL, jsonPath string) error {
+
+
+	podcast, err := db.podcastFromFeed(feedURL)
+	if err != nil{
+		return fmt.Errorf("failed to parse podcast feed: %w", err)
+	}
+
+	
 	// Read existing data from podcasts.json
 	existingData := make(map[string]Podcast)
 	file, err := os.Open(jsonPath)
