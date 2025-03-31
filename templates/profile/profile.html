@@ -1,12 +1,44 @@
-<div id="profile">
-    <h1>Profile</h1>
-    <div class="profile-info">
-        <p><strong>Name:</strong> Username</p>
-        <p><strong>Email:</strong>Email@gmail.com </p>
-        <p><strong>Joined:</strong>Joined at</p>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="profile-container">
+        <!-- Profile Header -->
+        <div class="profile-header">
+            <div class="profile-image">
+                <img src="/path/to/profile-image.jpg" alt="Profile Image">
+            </div>
+            <div class="profile-info">
+                <h1>Name</h1>
+                <p>email@example.com</p>
+                <p>Joined: YYYY-MM-DD</p>
+            </div>
+        </div>
+
+        <!-- Podcast List -->
+        <div class="podcast-list">
+            <h2>Your Podcasts</h2>
+            <ul>
+            {{range .Series}}
+                <li>{{.}}</li>
+            {{end}}
+        </ul>
+
+        </div>
+
+        <!-- Add Podcast -->
+        <div class="add-podcast">
+            <h2>Add Podcast</h2>
+            <form hx-post="/add-podcast" hx-target="#add-podcast-result" hx-swap="innerHTML">
+                <input type="text" name="podcast-url" placeholder="Enter podcast URL" required>
+                <button type="submit">Submit</button>
+            </form>
+            <div id="add-podcast-result"></div>
+        </div>
     </div>
-    <div class="profile-actions">
-        <button @click="editProfile">Edit Profile</button>
-        <button @click="logout">Logout</button>
-    </div>
-</div>
+</body>
+</html>

@@ -8,6 +8,7 @@
   <body class="podcast-container">
     <div class="podcast-header">
       <h1 class="podcast-title">{{.Title}}</h1>
+      <div id="podcast-selector" hx-get="/podcast-selector" hx-swap="innerHTML" hx-trigger="load">selector</div>
     </div>
     <div class="episodes-wrapper">
       <div class="episodes">

@@ -316,8 +316,18 @@ func (s *Server) profileHandler(w http.ResponseWriter, r *http.Request){
 		return
 	}
 
+	series, err := s.DB.GetSeries()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	series_struct := struct{
+		Series []string
+	}{series}
+
 	w.Header().Set("content-type", "text/html")
-	err = tmpl.Execute(w, nil)
+	err = tmpl.Execute(w, series_struct)
 	if err != nil{
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
