@@ -309,6 +309,21 @@ func (s *Server) selectorHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (s *Server) profileHandler(w http.ResponseWriter, r *http.Request){
+	tmpl, err := template.ParseFiles(s.TemplateDirectory + "/profile/" + "profile.html")
+	if err != nil{
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("content-type", "text/html")
+	err = tmpl.Execute(w, nil)
+	if err != nil{
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
 func (s *Server) SetupServer(folder string) {
 	s.TemplateDirectory = folder
 	http.HandleFunc("/", s.indexHandler)
@@ -322,4 +337,5 @@ func (s *Server) SetupServer(folder string) {
 	http.HandleFunc("/closemodal", s.closeModalHandler)
 	http.HandleFunc("/favicon", s.faviconHandler)
 	http.HandleFunc("/podcast-selector", s.selectorHandler)
+	http.HandleFunc("/profile", s.profileHandler)
 }

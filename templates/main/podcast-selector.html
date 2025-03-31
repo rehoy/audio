@@ -1,11 +1,9 @@
-<form hx-get="/podcast" hx-trigger="change" hx-target="#podcast-list" hx-swap="innerHTML" id="podcast-form">
+<form hx-get="/podcast" hx-trigger="change" hx-target="#main-container" hx-swap="innerHTML" id="podcast-form">
     <label for="podcast-selector">Choose Podcast</label>
     <select name="name" id="podcast-selector">
         {{range .PodcastTitles}}
         <option value="{{.}}">{{.}}</option>
-        
         {{end}}
-
     </select>
     <input type="submit" value="Submit">
 </form>

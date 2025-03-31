@@ -9,10 +9,7 @@
 </head>
 <body>
   <div hx-get="/navbar" hx-trigger="load">Loading navbar</div>
-  <div class="podcast-container">
-      <div hx-get="/podcast" hx-swap="outerhtml" hx-trigger="load" id="podcast-list">Loading please wait</div>
-  </div>
-  <div id="modal" class="modal hidden"></div>
+  <div class="main-container" id="main-container" hx-get="/podcast" hx-swap="innerHTML" hx-trigger="load">Loading please wait</div>
   <div id="player" hx-get="/player" hx-trigger="load">Loading _\|/_</div>
 </body>
 

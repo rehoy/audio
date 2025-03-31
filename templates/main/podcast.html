@@ -5,18 +5,18 @@
 </div>
 {{end}}
 
-
 <html>
-    <head>
-    </head>
-    <body>
-        <h1 class="podcast-title">{{.Title}}</h1>
-        <div class="episodes">
-            {{range $key, $episode := .Episodes}}
-                {{template "episode" $episode}}
-            {{end}}
-        </div>
-    </body>
+  <body class="podcast-container">
+    <div class="podcast-header">
+      <h1 class="podcast-title">{{.Title}}</h1>
+    </div>
+    <div class="episodes-wrapper">
+      <div class="episodes">
+        {{range $key, $episode := .Episodes}}
+          {{template "episode" $episode}}
+        {{end}}
+      </div>
+    </div>
+    <div id="modal" class="modal hidden"></div>
+  </body>
 </html>
-
-

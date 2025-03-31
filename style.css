@@ -60,18 +60,49 @@ button {
 }
 
 .podcast-container {
-    /* Make the podcast-container fill the space between navbar and podcast-player */
-    flex: 1;
-    overflow-y: auto;
-    /* Enable scrolling for this section */
-    margin-top: 100px;
-    /* Adjust for navbar height */
-    margin-bottom: 200px;
-    /* Adjust for podcast-player height */
-    border: 1px solid #ccc;
+    margin-top: 100px;    /* adjust according to your navbar height */
+    margin-bottom: 200px; /* adjust according to your podcast-player height */
+    overflow-y: hidden;
+}
+
+/* Fixed header styling for the podcast title */
+.podcast-header {
     padding: 10px;
-    margin-bottom: 20px;
-    align-items: center;
+    background-color: #f5f5f5;
+    border-bottom: 1px solid #ccc;
+}
+
+/* Make the episodes scrollable */
+.episodes-wrapper {
+    max-height: calc(100vh - 300px); /* subtract constant heights (navbar, header, player) */
+    overflow-y: auto;
+}
+
+/* Optionally, keep your episodes grid styling */
+.episodes {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+
+/* Media queries for responsive adjustments, if needed */
+@media (max-width: 768px) {
+    .episodes {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .episodes {
+        grid-template-columns: 1fr;
+    }
+}
+
+.main-container {
+    flex: 1;
+    overflow-y: hidden;
+    margin-top: 100px;
+    padding-bottom: 200px;
 }
 
 .podcast-title {
@@ -86,7 +117,7 @@ button {
     left: 0;
     width: 100%;
     z-index: 1000;
-    height: 200px;
+    height: 150px;
     /* Adjust as needed */
     background-color: rgb(110, 110, 110);
     padding: 20px;
@@ -128,6 +159,10 @@ button {
     grid-template-columns: repeat(3, 1fr);
     /* 3 columns */
     gap: 1rem;
+    overflow-y: auto;
+    /* Enable scrolling */
+    max-height: calc(100vh - 300px);
+    /* Adjust for navbar and player height */
 }
 
 .episode {
@@ -189,7 +224,7 @@ audio {
     max-width: 400px;
     background: #222;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     outline: none;
 }
 
