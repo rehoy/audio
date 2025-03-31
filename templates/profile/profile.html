@@ -29,17 +29,31 @@
             </ul>
         </div> -->
 
-        <div id="podcast-overview" hx-get="/podcast-overview" hx-swap="innerhtml" hx-trigger="load"></div>
+        <div id="podcast-overview" hx-get="/podcast-overview" hx-swap="innerHTML" hx-trigger="load"></div>
 
         <!-- Add Podcast -->
         <div class="add-podcast">
             <h2>Add Podcast</h2>
-            <form hx-post="/add-podcast" hx-target="#add-podcast-result" hx-swap="innerHTML">
-                <input type="text" name="podcast-url" placeholder="Enter podcast URL" required>
+            <form 
+            hx-post="/podcast-overview" 
+            hx-target="#podcast-overview" 
+            hx-swap="innerHTML"
+            id="add-podcast-form">
+                <input type="text" name="name" placeholder="Enter podcast URL" required>
                 <button type="submit">Submit</button>
             </form>
             <div id="add-podcast-result"></div>
         </div>
     </div>
+
+    <script>
+        document.querySelector('#add-podcast-form').addEventListener('htmx:responseError', function (event) {
+            if (event.detail.xhr.status === 400) {
+                document.querySelector('#add-podcast-result').innerText = 'The provided URL is not a valid rss feed';
+            } else if (event.detail.xhr.status === 409) {
+                document.querySelector('#add-podcast-result').innerText = 'The provided URL is already in your list';
+            }
+        });
+    </script>
 </body>
 </html>

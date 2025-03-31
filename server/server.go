@@ -109,7 +109,7 @@ func (s *Server) podcastHandler(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	podcast_name := query.Get("name")
 	if podcast_name == "" {
-		podcast_name = "Underunderstood"
+		podcast_name = "Not Another D&D Podcast"
 		fmt.Println("no parameter provided")
 	}
 	fmt.Println("podcast name:", podcast_name)
@@ -309,35 +309,29 @@ func (s *Server) selectorHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *Server) profileHandler(w http.ResponseWriter, r *http.Request){
+func (s *Server) profileHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl, err := template.ParseFiles(s.TemplateDirectory + "/profile/" + "profile.html")
-	if err != nil{
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("content-type", "text/html")
 	err = tmpl.Execute(w, nil)
-	if err != nil{
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }
 
-func (s *Server)overviewHandler(w http.ResponseWriter, r *http.Request) {
-	tmpl, err := template.ParseFiles("templates/profile/podcast-overview.html")
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
+func (s *Server) renderPodcastOverview(w http.ResponseWriter, tmpl *template.Template) {
 	series, err := s.DB.GetSeries()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	series_struct := struct{
+	series_struct := struct {
 		Series []string
 	}{series}
 
@@ -345,28 +339,87 @@ func (s *Server)overviewHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("content-type", "text/html")
 	err = tmpl.Execute(w, series_struct)
-	if err != nil{
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }
 
-func (s *Server)deleteHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) overviewHandler(w http.ResponseWriter, r *http.Request) {
+	tmpl, err := template.ParseFiles("templates/profile/podcast-overview.html")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	switch r.Method {
+	case http.MethodGet:
+		s.renderPodcastOverview(w, tmpl)
+	case http.MethodDelete:
+		query := r.URL.Query()
+		name := query.Get("name")
+		if name == "" {
+			http.Error(w, "Missing name", http.StatusBadRequest)
+			return
+		}
+
+		series_id, err := s.DB.GetSeriesIDByName(name)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		err = s.DB.DeleteSeries(series_id)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		s.renderPodcastOverview(w, tmpl)
+	case http.MethodPost:
+		err := r.ParseForm()
+		if err != nil {
+			http.Error(w, "Unable to parse form", http.StatusBadRequest)
+			return
+		}
+
+		name := r.FormValue("name")
+		if name == "" {
+			http.Error(w, "Missing name", http.StatusBadRequest)
+			return
+		}
+		
+		fmt.Println("Adding podcastURL:", name)
+		err = s.DB.AddPodcastToDB(name, "pod.db")
+		if err != nil {
+			fmt.Println("Error adding podcast to DB:", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		
+		s.renderPodcastOverview(w, tmpl)
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+}
+
+func (s *Server) deleteHandler(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	name := query.Get("name")
 	if name == "" {
 		http.Error(w, "Missing name", http.StatusBadRequest)
-		return 
+		return
 	}
 
-	series_id,err := s.DB.GetSeriesIDByName(name)
-	if err != nil{
+	series_id, err := s.DB.GetSeriesIDByName(name)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	err = s.DB.DeleteSeries(series_id)
-	if err != nil{
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -377,7 +430,7 @@ func (s *Server)deleteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	series_struct := struct{
+	series_struct := struct {
 		Series []string
 	}{series}
 
@@ -387,15 +440,12 @@ func (s *Server)deleteHandler(w http.ResponseWriter, r *http.Request) {
 
 	tmpl, _ := template.ParseFiles("templates/profile/podcast-overview.html")
 	err = tmpl.Execute(w, series_struct)
-	if err != nil{
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-
 }
-
-
 
 func (s *Server) SetupServer(folder string) {
 	s.TemplateDirectory = folder

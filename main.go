@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"time"
 
 	"github.com/rehoy/audioplayer/server"
 )
@@ -32,20 +31,6 @@ func main() {
 	go func() {
 		<-c
 		stop <- true
-	}()
-
-	go func() {
-		index := 0
-		for {
-			select {
-			case <-stop:
-				return
-			default:
-				fmt.Println(index)
-				index++
-				time.Sleep(time.Second * 1)
-			}
-		}
 	}()
 	
 	signal.Notify(c, os.Interrupt)

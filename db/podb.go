@@ -129,19 +129,22 @@ func (db *DB) insertSeries(title, description string) (int, error) {
 }
 
 func (db *DB) pubdateToTimeStamp(pubdate string) (time.Time, error) {
-	layout := time.RFC1123Z
-	var parsedTime time.Time
-	parsedTime, err := time.Parse(layout, pubdate)
-
-	if err != nil {
-		parsedTime, err = time.Parse(time.RFC1123, pubdate)
-		if err != nil {
-			fmt.Println("Error parsing time:", err)
-			return time.Time{}, err
-		}
-	}
-
-	return parsedTime, nil
+    layouts := []string{
+        time.RFC1123Z,                 // "Mon, 02 Jan 2006 15:04:05 -0700"
+        time.RFC1123,                  // "Mon, 02 Jan 2006 15:04:05 MST"
+        "Mon, 2 Jan 2006 15:04:05 -0700", // Alternative: non-padded day with numeric tz
+        "Mon, 2 Jan 2006 15:04:05 MST",   // Alternative: non-padded day with abbreviated tz
+    }
+    
+    var parsedTime time.Time
+    var err error
+    for _, layout := range layouts {
+        parsedTime, err = time.Parse(layout, pubdate)
+        if err == nil {
+            return parsedTime, nil
+        }
+    }
+    return time.Time{}, fmt.Errorf("cannot parse pubdate %q: %v", pubdate, err)
 
 }
 
