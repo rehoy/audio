@@ -241,7 +241,7 @@ func (db *DB) GetEpisodesFromSeries(args ...any) ([]Episode, error) {
 
 	switch args[0].(type) {
 	case string:
-		seriesID, err = db.getSeriesIDByName(args[0].(string))
+		seriesID, err = db.GetSeriesIDByName(args[0].(string))
 		if err != nil {
 			return nil, fmt.Errorf("Error getting series ID by name: %v", err)
 		}
@@ -275,7 +275,7 @@ func (db *DB) GetEpisodesFromSeries(args ...any) ([]Episode, error) {
 	return episodes, nil
 }
 
-func (db *DB) getSeriesIDByName(seriesName string) (int, error) {
+func (db *DB) GetSeriesIDByName(seriesName string) (int, error) {
 	var seriesID int
 	query := "SELECT series_id FROM series WHERE title = ?"
 	err := db.conn.QueryRow(query, seriesName).Scan(&seriesID)
@@ -319,4 +319,21 @@ func (db *DB) GetSeries() ([]string, error) {
 	}
 
 	return series, nil
+}
+
+func (db *DB) DeleteSeries(series_id int) error {
+	query := "DELETE FROM series WHERE series_id = ?"
+	_, err := db.conn.Exec(query, series_id)
+	if err != nil {
+		fmt.Println("Error deleting series:", err)
+		return fmt.Errorf("Error deleting series: %v", err)
+	}
+	fmt.Println("Deleted series with ID:", series_id)
+	query = "DELETE FROM episodes WHERE series_id = ?"
+	_, err = db.conn.Exec(query, series_id)
+	if err != nil {
+		fmt.Println("COuld not delete episodes:", err)
+		return fmt.Errorf("Error deleting episodes: %v", err)
+	}
+	return nil
 }

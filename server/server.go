@@ -316,6 +316,21 @@ func (s *Server) profileHandler(w http.ResponseWriter, r *http.Request){
 		return
 	}
 
+	w.Header().Set("content-type", "text/html")
+	err = tmpl.Execute(w, nil)
+	if err != nil{
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func (s *Server)overviewHandler(w http.ResponseWriter, r *http.Request) {
+	tmpl, err := template.ParseFiles("templates/profile/podcast-overview.html")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	series, err := s.DB.GetSeries()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -326,6 +341,8 @@ func (s *Server) profileHandler(w http.ResponseWriter, r *http.Request){
 		Series []string
 	}{series}
 
+	fmt.Println("Series:", series)
+
 	w.Header().Set("content-type", "text/html")
 	err = tmpl.Execute(w, series_struct)
 	if err != nil{
@@ -333,6 +350,52 @@ func (s *Server) profileHandler(w http.ResponseWriter, r *http.Request){
 		return
 	}
 }
+
+func (s *Server)deleteHandler(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+	name := query.Get("name")
+	if name == "" {
+		http.Error(w, "Missing name", http.StatusBadRequest)
+		return 
+	}
+
+	series_id,err := s.DB.GetSeriesIDByName(name)
+	if err != nil{
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	err = s.DB.DeleteSeries(series_id)
+	if err != nil{
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	series, err := s.DB.GetSeries()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	series_struct := struct{
+		Series []string
+	}{series}
+
+	fmt.Println("Series:", series)
+
+	w.Header().Set("content-type", "text/html")
+
+	tmpl, _ := template.ParseFiles("templates/profile/podcast-overview.html")
+	err = tmpl.Execute(w, series_struct)
+	if err != nil{
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+
+}
+
+
 
 func (s *Server) SetupServer(folder string) {
 	s.TemplateDirectory = folder
@@ -348,4 +411,6 @@ func (s *Server) SetupServer(folder string) {
 	http.HandleFunc("/favicon", s.faviconHandler)
 	http.HandleFunc("/podcast-selector", s.selectorHandler)
 	http.HandleFunc("/profile", s.profileHandler)
+	http.HandleFunc("/podcast-overview", s.overviewHandler)
+	http.HandleFunc("/delete", s.deleteHandler)
 }
