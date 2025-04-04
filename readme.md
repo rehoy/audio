@@ -13,9 +13,9 @@
 - blank the podcast addition input
 - multiple profiles
 - lazy loading the episodes for perfomance or limit the number of episodes er page to begin with
-- chronolocgically sorted and options for how to sort
+- [x] chronolocgically sorted and options for how to sort
 - prettify all the css
 - user log in page?
 - add download button
 - update podcasts and in profile page update individual?
-
+- download button for individual episdoe and for all

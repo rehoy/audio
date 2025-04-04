@@ -100,20 +100,46 @@ func (s *Server) clickHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) podcastHandler(w http.ResponseWriter, r *http.Request) {
-	tmpl, err := template.ParseFiles(s.TemplateDirectory + "/main/" + "podcast.html")
+	tmpl, err := template.ParseFiles(s.TemplateDirectory + "/main/" + "podcast-subcontainer.html")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	query := r.URL.Query()
-	podcast_name := query.Get("name")
+	// Parse form values from the request
+	err = r.ParseForm()
+	if err != nil {
+		http.Error(w, "Unable to parse form", http.StatusBadRequest)
+		return
+	}
+
+	podcast_name := r.FormValue("name")
+	orderBy := r.FormValue("ordering")
+	upDown := r.FormValue("up-down")
+
+
 	if podcast_name == "" {
 		podcast_name = "Tartarus"
 		fmt.Println("no parameter provided")
 	}
-	fmt.Println("podcast name:", podcast_name)
-	episodes, err := s.DB.GetEpisodesFromSeries(podcast_name)
+
+	var ordering string
+	var sorting string
+
+	switch orderBy {
+	case "title":
+		ordering = "title"
+	case "pubdate":
+		ordering = "pubdate"
+	}
+
+	switch upDown {
+	case "up":
+		sorting = "ASC"
+	case "down":
+		sorting = "DESC"
+	}
+	episodes, err := s.DB.GetEpisodesFromSeries(podcast_name, ordering, sorting)
 	if err != nil {
 		fmt.Println("Error getting episodes from series:", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -403,13 +429,26 @@ func (s *Server) overviewHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (db *Server)podcastContainerHandler(w http.ResponseWriter, r *http.Request) {
+	tmpl, err := template.ParseFiles("templates/main/podcast.html")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
+	w.Header().Set("content-type", "text/html")
+	err = tmpl.Execute(w, nil)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
 
 func (s *Server) SetupServer(folder string) {
 	s.TemplateDirectory = folder
 	http.HandleFunc("/", s.indexHandler)
 	http.HandleFunc("/click", s.clickHandler)
-	http.HandleFunc("/podcast", s.podcastHandler)
+	http.HandleFunc("/podcast", s.podcastContainerHandler)
 	http.HandleFunc("/navbar", s.navbarHandler)
 	http.HandleFunc("/player", s.playerHandler)
 	http.HandleFunc("/id", s.idHandler)
@@ -420,4 +459,5 @@ func (s *Server) SetupServer(folder string) {
 	http.HandleFunc("/podcast-selector", s.selectorHandler)
 	http.HandleFunc("/profile", s.profileHandler)
 	http.HandleFunc("/podcast-overview", s.overviewHandler)
+	http.HandleFunc("/podcast-container", s.podcastHandler)
 }
