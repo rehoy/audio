@@ -2,17 +2,18 @@
 <div id="{{.Episode_id}}" class="episode" hx-get="/episode?id={{.Episode_id}}" hx-trigger="click" hx-target="#player">
     <img class="thumbnail" src="{{.ImageURL}}" alt="image url">
     <h2 class="episode-title">{{.Title}}</h2>
+    <div>{{.Pubdate}}</div>
 </div>
 {{end}}
 
   <body class="podcast-container">
+    <div id="podcast-selector" hx-get="/podcast-selector" hx-swap="innerHTML" hx-trigger="load">selector</div>
     <div class="podcast-header">
-      <h1 class="podcast-title">{{.Title}}</h1>
-      <div id="podcast-selector" hx-get="/podcast-selector" hx-swap="innerHTML" hx-trigger="load">selector</div>
+    <h1 class="podcast-title">{{.Title}}</h1>
     </div>
     <div class="episodes-wrapper">
       <div class="episodes">
-        {{range $key, $episode := .Episodes}}
+        {{range $episode:= .Episodes}}
           {{template "episode" $episode}}
         {{end}}
       </div>

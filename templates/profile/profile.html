@@ -39,8 +39,10 @@
             hx-target="#podcast-overview" 
             hx-swap="innerHTML"
             id="add-podcast-form">
-                <input type="text" name="name" placeholder="Enter podcast URL" required>
-                <button type="submit">Submit</button>
+                <input id="form-input" type="text" name="name" placeholder="Enter podcast URL" required>
+                <button class="submit-button"
+                type="submit"
+                >Submit</button>
             </form>
             <div id="add-podcast-result"></div>
         </div>
@@ -54,6 +56,12 @@
                 document.querySelector('#add-podcast-result').innerText = 'The provided URL is already in your list';
             }
         });
+
+        // const button = document.querySelector('.submit-button');
+        // button.addEventListener('click', function () {
+        //     document.querySelector('#form-input').value = '';
+        //     console.log('Submit button clicked');
+        // });
     </script>
 </body>
 </html>

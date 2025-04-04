@@ -109,7 +109,7 @@ func (s *Server) podcastHandler(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	podcast_name := query.Get("name")
 	if podcast_name == "" {
-		podcast_name = "Not Another D&D Podcast"
+		podcast_name = "Tartarus"
 		fmt.Println("no parameter provided")
 	}
 	fmt.Println("podcast name:", podcast_name)
@@ -124,11 +124,10 @@ func (s *Server) podcastHandler(w http.ResponseWriter, r *http.Request) {
 	for _, episode := range episodes {
 		episodeMap[episode.Title] = episode
 	}
-
 	podcast := podb.Podcast{
 		Title:       podcast_name,
 		Description: "A podcast about the unknown",
-		Episodes:    episodeMap,
+		Episodes:    episodes,
 	}
 
 	w.Header().Set("Content-Type", "text/html")
@@ -259,7 +258,7 @@ func (s *Server) closeModalHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) faviconHandler(w http.ResponseWriter, r *http.Request) {
-	podcast_name := "Underunderstood"
+	podcast_name := "Tartarus"
 	episodes, err := s.DB.GetEpisodesFromSeries(podcast_name)
 	if err != nil {
 		fmt.Println("Error getting episodes from series:", err)
@@ -404,48 +403,7 @@ func (s *Server) overviewHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *Server) deleteHandler(w http.ResponseWriter, r *http.Request) {
-	query := r.URL.Query()
-	name := query.Get("name")
-	if name == "" {
-		http.Error(w, "Missing name", http.StatusBadRequest)
-		return
-	}
 
-	series_id, err := s.DB.GetSeriesIDByName(name)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	err = s.DB.DeleteSeries(series_id)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	series, err := s.DB.GetSeries()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	series_struct := struct {
-		Series []string
-	}{series}
-
-	fmt.Println("Series:", series)
-
-	w.Header().Set("content-type", "text/html")
-
-	tmpl, _ := template.ParseFiles("templates/profile/podcast-overview.html")
-	err = tmpl.Execute(w, series_struct)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-}
 
 func (s *Server) SetupServer(folder string) {
 	s.TemplateDirectory = folder
@@ -462,5 +420,4 @@ func (s *Server) SetupServer(folder string) {
 	http.HandleFunc("/podcast-selector", s.selectorHandler)
 	http.HandleFunc("/profile", s.profileHandler)
 	http.HandleFunc("/podcast-overview", s.overviewHandler)
-	http.HandleFunc("/delete", s.deleteHandler)
 }
