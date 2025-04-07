@@ -7,7 +7,19 @@
 ## drømmen
 ![Skisse](images/skisse.jpg)
 
-## pressende
-- helt klart en alternativ måte å håndtere podcaster er å ikke sende selve lydfilen.
-- Det tar 5 sekunder for 10 korte episoder.
-- Best er å sende for episoden når den er valgt!
+
+## things to implement
+- async podcast episode addition
+- blank the podcast addition input
+- multiple profiles
+- lazy loading the episodes for perfomance or limit the number of episodes er page to begin with
+- [x] chronolocgically sorted and options for how to sort
+- prettify all the css
+- user log in page?
+- add download button
+- update podcasts and in profile page update individual?
+- download button for individual episdoe and for all
+- websockets for large downloads
+
+### right now
+- users are taken care of since this is going to be home server

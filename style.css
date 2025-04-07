@@ -75,20 +75,33 @@ button {
 /* Optionally, keep your episodes grid styling */
 .episodes {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    width: 100%;
+    grid-template-columns: repeat(4, 1fr);
+    /* 4 columns for wide screens */
     gap: 1rem;
+    overflow-y: auto;
+    max-height: calc(100vh - 300px);
 }
 
-/* Media queries for responsive adjustments, if needed */
+/* Media queries for responsive adjustments */
+@media (max-width: 1024px) {
+    .episodes {
+        grid-template-columns: repeat(3, 1fr);
+        /* 3 columns for medium screens */
+    }
+}
+
 @media (max-width: 768px) {
     .episodes {
         grid-template-columns: 1fr 1fr;
+        /* 2 columns for smaller screens */
     }
 }
 
 @media (max-width: 480px) {
     .episodes {
         grid-template-columns: 1fr;
+        /* Single column for very small screens */
     }
 }
 
@@ -147,18 +160,6 @@ button {
     color: #555;
 }
 
-.episodes {
-    display: grid;
-    width: 100%;
-    grid-template-columns: repeat(3, 1fr);
-    /* 3 columns */
-    gap: 1rem;
-    overflow-y: auto;
-    /* Enable scrolling */
-    max-height: calc(100vh - 300px);
-    /* Adjust for navbar and player height */
-}
-
 .episode {
     border: 1px solid #cacaca;
     padding: 1rem;
@@ -171,20 +172,6 @@ button {
     height: auto;
     display: block;
     object-fit: cover;
-}
-
-@media (max-width: 768px) {
-    .episodes {
-        grid-template-columns: 1fr 1fr;
-        /* 2 columns for smaller screens */
-    }
-}
-
-@media (max-width: 480px) {
-    .episodes {
-        grid-template-columns: 1fr;
-        /* Single column for very small screens */
-    }
 }
 
 .modal {
