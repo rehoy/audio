@@ -7,7 +7,9 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
+	"io"
 
 	podb "github.com/rehoy/audioplayer/db"
 )
@@ -442,6 +444,38 @@ func (db *Server)podcastContainerHandler(w http.ResponseWriter, r *http.Request)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+}
+
+func (s *Server) downloadHandler(w http.ResponseWriter, r *http.Request) {
+    // Get the file URL from the request
+    fileURL := r.URL.Query().Get("url")
+    if fileURL == "" {
+        http.Error(w, "Missing file URL", http.StatusBadRequest)
+        return
+    }
+
+    // Extract the filename from the URL
+    filename := filepath.Base(fileURL)
+
+    // Download the file from the URL
+    resp, err := http.Get(fileURL)
+    if err != nil {
+        http.Error(w, "Error downloading file", http.StatusInternalServerError)
+        return
+    }
+    defer resp.Body.Close()
+
+    // Set the appropriate headers for file download
+    w.Header().Set("Content-Disposition", "attachment; filename="+filename)
+    w.Header().Set("Content-Type", resp.Header.Get("Content-Type"))
+    w.Header().Set("Content-Length", resp.Header.Get("Content-Length"))
+
+    // Copy the file content to the response writer
+    _, err = io.Copy(w, resp.Body)
+    if err != nil {
+        http.Error(w, "Error copying file to response", http.StatusInternalServerError)
+        return
+    }
 }
 
 func (s *Server) SetupServer(folder string) {

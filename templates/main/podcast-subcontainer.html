@@ -14,17 +14,6 @@
 <div id="{{.Episode_id}}" class="episode" hx-get="/episode?id={{.Episode_id}}" hx-trigger="click" hx-target="#player">
     <img class="thumbnail" src="{{.ImageURL}}" alt="image url">
     <h2 class="episode-title">{{.Title}}</h2>
-    <button onclick="downloadFile('{{.AudioURL}}', '{{.Title}}.mp3')">Download</button>
+    <a href="/download?url={{.AudioURL}}" download="{{.Title}}.mp3"><button>Download</button></a>
     </div>
 {{end}}
-    
-  <script>
-  function downloadFile(url, filename) {
-      var link = document.createElement('a');
-      link.href = url;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-  }
-  </script>

@@ -19,3 +19,7 @@
 - add download button
 - update podcasts and in profile page update individual?
 - download button for individual episdoe and for all
+- websockets for large downloads
+
+### right now
+- users are taken care of since this is going to be home server
