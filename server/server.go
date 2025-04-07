@@ -22,7 +22,6 @@ type Person struct {
 }
 
 type Server struct {
-	Podcast           *podb.Podcast
 	TemplateDirectory string
 	DB                *podb.DB
 }
@@ -31,7 +30,6 @@ func NewServer() *Server {
 	db := podb.NewDB()
 
 	return &Server{
-		Podcast: loadPodcast(),
 		DB:      db,
 	}
 }
@@ -300,14 +298,6 @@ func (s *Server) faviconHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, `<link rel="icon" href="%s" type="image/png">`, imageURL)
 }
 
-func (s *Server) getEpisode(id int) podb.Episode {
-	for _, value := range s.Podcast.Episodes {
-		if value.Episode_id == id {
-			return value
-		}
-	}
-	return podb.Episode{}
-}
 
 func (s *Server) selectorHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl, err := template.ParseFiles(s.TemplateDirectory + "/main/" + "podcast-selector.html")

@@ -48,6 +48,10 @@
         </div>
     </div>
 
+    <div>
+        <button>Update Podcasts</button>
+    </div>
+
     <script>
         document.querySelector('#add-podcast-form').addEventListener('htmx:responseError', function (event) {
             if (event.detail.xhr.status === 400) {
@@ -57,11 +61,6 @@
             }
         });
 
-        // const button = document.querySelector('.submit-button');
-        // button.addEventListener('click', function () {
-        //     document.querySelector('#form-input').value = '';
-        //     console.log('Submit button clicked');
-        // });
     </script>
 </body>
 </html>

@@ -22,4 +22,8 @@
 - websockets for large downloads
 
 ### right now
-- users are taken care of since this is going to be home server
+- add to unwatched 
+    - get current episode sfrom series
+    - add to db
+    - get new episode sfrom series again 
+    - compare then add discrepancy to unwatched 
