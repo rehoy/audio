@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Podcast Updates</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        .podcast {
+            margin-bottom: 20px;
+        }
+        .podcast-title {
+            font-size: 1.5em;
+            color: #555;
+        }
+        .episode-list {
+            margin-left: 20px;
+        }
+        .episode {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Podcast Updates</h1>
+    {{range $podcastTitle, $episodes := .}}
+    <div class="podcast">
+        <div class="podcast-title">{{$podcastTitle}}</div>
+        <ul class="episode-list">
+            {{range $episodes}}
+            <li class="episode">{{.Title}}</li>
+            {{end}}
+        </ul>
+    </div>
+    {{end}}
+</body>
+</html>

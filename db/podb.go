@@ -558,18 +558,17 @@ func (db *DB) addUnwatchedEpisodes(episodesMap map[string][]Episode) error {
 	return nil
 }
 
-
-func (db *DB) Update() map[string][]Episode {
+func (db *DB) Update() (map[string][]Episode, error) {
 	episodesMap, err := db.CheckForUpdates()
 	if err != nil {
 		fmt.Println("Error checking for updates:", err)
-		return nil
+		return nil, err
 	}
 
 	err = db.addUnwatchedEpisodes(episodesMap)
 	if err != nil {
 		fmt.Println("Error adding unwatched episodes:", err)
-		return nil
+		return nil, err
 	}
 	fmt.Println("Added unwatched episodes to the database.")
 
@@ -577,5 +576,5 @@ func (db *DB) Update() map[string][]Episode {
 		fmt.Printf("Podcast: %s, New Episodes: %d\n", seriesTitle, len(episodes))
 	}
 
-	return episodesMap
+	return episodesMap, nil
 }
