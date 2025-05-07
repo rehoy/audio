@@ -20,6 +20,7 @@
 - update podcasts and in profile page update individual?
 - download button for individual episdoe and for all
 - websockets for large downloads
+- limit the size of modal
 
 ### right now
 - add to unwatched 
@@ -27,3 +28,5 @@
     - add to db
     - get new episode sfrom series again 
     - compare then add discrepancy to unwatched 
+
+
