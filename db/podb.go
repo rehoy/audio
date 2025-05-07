@@ -8,6 +8,7 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	_ "github.com/glebarez/go-sqlite"
@@ -23,6 +24,7 @@ type Episode struct {
 	ImageURL    string `json:"imageURL"`
 }
 type Podcast struct {
+	Series_id int
 	Title       string
 	Description string
 	Episodes    []Episode
@@ -414,4 +416,165 @@ func (db *DB) compareEpisodeList(newRssFeed string) ([]Episode, error) {
     }
 
     return newEpisodes, nil
+}
+
+func (db *DB) AddNewEpisodes(rssFeed string) ([]Episode, error) {
+	newPodcast, err := db.podcastFromFeed(rssFeed)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse podcast feed: %w", err)
+	}
+
+	seriesID, err := db.GetSeriesIDByName(newPodcast.Title)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get series ID: %w", err)
+	}
+
+	existingEpisodes, err := db.GetEpisodesFromSeries(seriesID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get existing episodes: %w", err)
+	}
+
+	newEpisodes := make([]Episode, 0)
+	for _, newEpisode := range newPodcast.Episodes {
+        found := false
+        for _, existingEpisode := range existingEpisodes {
+            if strings.EqualFold(newEpisode.Title, existingEpisode.Title) {
+                found = true
+                break
+            }
+        }
+        if !found {
+            newEpisodes = append(newEpisodes, newEpisode)
+        }
+	}
+
+	    // 5. Insert the new episodes into the database
+	tx, err := db.conn.Begin()
+	if err != nil {
+		return nil, fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	for _, episode := range newEpisodes {
+		_, err := tx.Exec("INSERT INTO episodes (title, pubdate, description, audiourl, imageurl, series_id) VALUES (?, ?, ?, ?, ?, ?)", episode.Title, episode.Pubdate, episode.Description, episode.AudioURL, episode.ImageURL, seriesID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to insert episode: %w", err)
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return nil, fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	for i, episode := range newEpisodes {
+		var id int
+		err := db.conn.QueryRow("SELECT episode_id FROM episodes WHERE title = ? AND series_id = ?", episode.Title, seriesID).Scan(&id)
+		if err != nil {
+			return nil, fmt.Errorf("failed to fetch episode ID: %w", err)
+		}
+		newEpisodes[i].Episode_id = id
+	}
+
+	return newEpisodes, nil
+}
+
+func (db *DB) getSeriesMap() (map[string]Podcast, error) {
+
+	seriesMap := make(map[string]Podcast)
+
+	series, err := db.GetSeries()
+
+	if err != nil {
+		fmt.Println("Error getting series:", err)
+		return nil, err
+	}
+
+	for _, seriesName := range series {
+		seriesID, err := db.GetSeriesIDByName(seriesName)
+		if err != nil {
+			return nil, err
+		}
+
+		var podcast Podcast
+		query := "select series_id, title, description, feedurl from series where series_id = ?"
+		err = db.conn.QueryRow(query, seriesID).Scan(&podcast.Series_id, &podcast.Title, &podcast.Description, &podcast.RssFeed)
+
+		if err != nil {
+			return nil, err
+		}
+
+		seriesMap[podcast.Title] = podcast
+	}
+
+	return seriesMap, nil
+
+}
+
+func (db *DB) CheckForUpdates() (map[string][]Episode, error) {
+
+	seriesMap, _ := db.getSeriesMap()
+	episodesMap := make(map[string][]Episode)
+
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+
+	for _, podcast := range seriesMap {
+		wg.Add(1)
+		go func(podcast Podcast) {
+			defer wg.Done()
+			newEpisodes, err := db.AddNewEpisodes(podcast.RssFeed)
+			if err != nil {
+				fmt.Println("Error adding new episodes:", err, podcast.Title)
+			} else {
+				mu.Lock()
+				episodesMap[podcast.Title] = newEpisodes
+				mu.Unlock()	
+			}
+		}(podcast)
+	}
+	wg.Wait()
+
+	return episodesMap, nil
+
+}
+
+func (db *DB) addUnwatchedEpisodes(episodesMap map[string][]Episode) error {
+	user_id := 1
+	for seriesTitle, episodes := range episodesMap {
+		seriesID, err := db.GetSeriesIDByName(seriesTitle)
+		if err != nil {
+			return fmt.Errorf("failed to get series ID: %w", err)
+		}
+
+		for _, episode := range episodes {
+			_, err := db.conn.Exec("INSERT INTO unwatched (user_id, episode_id, series_id) VALUES (?, ?)", user_id, episode.Episode_id, seriesID)
+			if err != nil {
+				return fmt.Errorf("failed to insert unwatched episode: %w", err)
+			}
+		}
+	}
+
+	return nil
+}
+
+func (db *DB) Update() (map[string][]Episode, error) {
+	episodesMap, err := db.CheckForUpdates()
+	if err != nil {
+		fmt.Println("Error checking for updates:", err)
+		return nil, err
+	}
+
+	err = db.addUnwatchedEpisodes(episodesMap)
+	if err != nil {
+		fmt.Println("Error adding unwatched episodes:", err)
+		return nil, err
+	}
+	fmt.Println("Added unwatched episodes to the database.")
+
+	for seriesTitle, episodes := range episodesMap {
+		fmt.Printf("Podcast: %s, New Episodes: %d\n", seriesTitle, len(episodes))
+	}
+
+	return episodesMap, nil
 }

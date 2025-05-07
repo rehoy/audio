@@ -22,7 +22,6 @@ type Person struct {
 }
 
 type Server struct {
-	Podcast           *podb.Podcast
 	TemplateDirectory string
 	DB                *podb.DB
 }
@@ -31,7 +30,6 @@ func NewServer() *Server {
 	db := podb.NewDB()
 
 	return &Server{
-		Podcast: loadPodcast(),
 		DB:      db,
 	}
 }
@@ -121,7 +119,7 @@ func (s *Server) podcastHandler(w http.ResponseWriter, r *http.Request) {
 
 
 	if podcast_name == "" {
-		podcast_name = "Tartarus"
+		podcast_name = "Underundertood"
 		fmt.Println("no parameter provided")
 	}
 
@@ -256,6 +254,14 @@ func (s *Server) modalHandler(w http.ResponseWriter, r *http.Request) {
 		episode = s.DB.GetEpisode(id)
 	}
 
+	data := struct {
+		Title       string
+		Description template.HTML
+	}{
+		Title:       episode.Title,
+		Description: template.HTML(episode.Description),
+	}
+
 	tmpl, err := template.ParseFiles(s.TemplateDirectory + "/main/" + "modal.html")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -263,7 +269,7 @@ func (s *Server) modalHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("content-type", "text/html")
-	err = tmpl.Execute(w, episode)
+	err = tmpl.Execute(w, data)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -286,7 +292,7 @@ func (s *Server) closeModalHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) faviconHandler(w http.ResponseWriter, r *http.Request) {
-	podcast_name := "Tartarus"
+	podcast_name := "Underunderstood"
 	episodes, err := s.DB.GetEpisodesFromSeries(podcast_name)
 	if err != nil {
 		fmt.Println("Error getting episodes from series:", err)
@@ -298,15 +304,6 @@ func (s *Server) faviconHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(imageURL, len(episodes))
 	w.Header().Set("Content-Type", "text/html")
 	fmt.Fprintf(w, `<link rel="icon" href="%s" type="image/png">`, imageURL)
-}
-
-func (s *Server) getEpisode(id int) podb.Episode {
-	for _, value := range s.Podcast.Episodes {
-		if value.Episode_id == id {
-			return value
-		}
-	}
-	return podb.Episode{}
 }
 
 func (s *Server) selectorHandler(w http.ResponseWriter, r *http.Request) {
@@ -393,12 +390,14 @@ func (s *Server) overviewHandler(w http.ResponseWriter, r *http.Request) {
 		series_id, err := s.DB.GetSeriesIDByName(name)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
+			fmt.Println("Error getting series ID by name:", err)
 			return
 		}
 
 		err = s.DB.DeleteSeries(series_id)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
+			fmt.Println("Error deleting series ID by name:", err)
 			return
 		}
 
@@ -478,6 +477,33 @@ func (s *Server) downloadHandler(w http.ResponseWriter, r *http.Request) {
     }
 }
 
+func (s *Server) updateHandler(w http.ResponseWriter, r *http.Request) {
+	tmpl, err := template.ParseFiles(s.TemplateDirectory + "/profile/" + "updates.html")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	fmt.Println("What is not done here is not to be squandered")
+
+	episodeMap, nil := s.DB.Update()
+	fmt.Println("Episode map:", episodeMap)
+
+	if err != nil {
+		fmt.Println("Error getting episodes in updateHandler")
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("content-type", "text/html")
+	err = tmpl.Execute(w, episodeMap)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+
+
 func (s *Server) SetupServer(folder string) {
 	s.TemplateDirectory = folder
 	http.HandleFunc("/", s.indexHandler)
@@ -494,4 +520,6 @@ func (s *Server) SetupServer(folder string) {
 	http.HandleFunc("/profile", s.profileHandler)
 	http.HandleFunc("/podcast-overview", s.overviewHandler)
 	http.HandleFunc("/podcast-container", s.podcastHandler)
+	http.HandleFunc("/updated", s.updateHandler)
+
 }

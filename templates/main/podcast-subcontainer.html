@@ -14,6 +14,6 @@
 <div id="{{.Episode_id}}" class="episode" hx-get="/episode?id={{.Episode_id}}" hx-trigger="click" hx-target="#player">
     <img class="thumbnail" src="{{.ImageURL}}" alt="image url">
     <h2 class="episode-title">{{.Title}}</h2>
-    <a href="/download?url={{.AudioURL}}" download="{{.Title}}.mp3"><button>Download</button></a>
+    <a href="{{.AudioURL}}" download="{{.Title}}.mp3"><button>Download</button></a>
     </div>
 {{end}}

@@ -1,6 +1,6 @@
 <div class="modal-content">
-    <h2>Modal modal modal {{.Title}}</h2>
-    <p>must be funny {{.Description}}</p>
+    <h2>{{.Title}}</h2>
+    <p>{{.Description}}</p>
     <button hx-get="/closemodal" hx-target="#modal" hx-swap="innerHTML">Close</button>
 </div>
 <script>
