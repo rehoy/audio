@@ -450,6 +450,104 @@ func (db *DB) FindNewEpisodes(rssFeed string) ([]Episode, error) {
 	return newEpisodes, nil
 }
 
+// Happens after updating the database with new episodes
+func (db *DB) AddEpisodes(episodes []Episode, series_id int) error {
+	errors := make([]string, 0)
+	for _, episode := range episodes {
+		query := "INSERT INTO episodes (title, pubdate, description, audiourl, imageurl, series_id) VALUES (?, ?, ?, ?, ?, ?)"
+		_, err := db.conn.Exec(query, episode.Title, episode.Pubdate, episode.Description, episode.AudioURL, episode.ImageURL, series_id)
+		if err != nil {
+			fmt.Println("Error inserting episode:", err)
+			// return fmt.Errorf("Error inserting episode: %v", err)
+			errors = append(errors, episode.Title)
+		}
+	}
+
+	if len(errors) > 0 {
+		return fmt.Errorf("failed to insert episodes: %v", errors)
+	}
+
+	return nil
+}
+
+func (db *DB) UpdatePodcast(podcastTitle string) error {
+
+	series_id, err := db.GetSeriesIDByName(podcastTitle)
+	if err != nil {
+		return fmt.Errorf("failed to get series ID: %w", err)
+	}
+	podcast, err := db.GetPodcast(series_id)
+	if err != nil {
+		return fmt.Errorf("failed to get podcast: %w", err)
+	}
+
+	newEpisodes, err := db.FindNewEpisodes(podcast.RssFeed)
+
+	if err != nil {
+		return fmt.Errorf("failed to find new episodes: %w", err)
+	}
+
+	err = db.AddEpisodes(newEpisodes, series_id)
+	if err != nil {
+		return fmt.Errorf("failed to add these episodes: %w", err)
+	}
+
+
+	err = db.UpdateUnwatched(podcast.Series_id, 1, newEpisodes)
+	if err != nil {
+		return fmt.Errorf("failed to update unwatched episodes: %w", err)
+	}
+
+	return nil
+}
+
+func (db *DB) UpdateUnwatched(series_id int, user_id int, episodes []Episode)  error {
+
+	tx, err := db.conn.Begin()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer func() {
+		if p := recover(); p != nil {
+			tx.Rollback()
+			panic(p)
+		} else if err != nil {
+			tx.Rollback()
+		}
+	}()
+
+	for _, episode := range episodes {
+		title := episode.Title
+		query := "SELECT episode_id FROM episodes WHERE title = ?"
+		var episodeID int
+		err = tx.QueryRow(query, title).Scan(&episodeID)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				fmt.Printf("No episode found with title: %s\n", title)
+			} else {
+				fmt.Printf("Error querying episode: %v\n", err)
+			}
+			return err
+		}
+		fmt.Printf("Found episode with ID: %d for title: %s\n", episodeID, title)
+
+		query = "INSERT INTO unwatched (user_id, episode_id, series_id) VALUES (?, ?, ?)"
+		_, err = tx.Exec(query, user_id, episodeID, series_id)
+		if err != nil {
+			fmt.Printf("Error inserting unwatched episode: %v\n", err)
+			return err
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	return nil
+
+}
+
 func (db *DB) AddNewEpisodes(rssFeed string) ([]Episode, error) {
 	newEpisodes, err := db.FindNewEpisodes(rssFeed)
 

@@ -61,37 +61,11 @@ func main() {
 		fmt.Println("Series Name: ", series_name)
 	}
 
-	episodes, err := db.GetEpisodesFromSeries("Lemonade Stand")
-	if err != nil {
-		fmt.Println("Error getting episodes: ", err)
-		return
-	}
+	podcast_title := "Not Another D&D Podcast"
+	db.UpdatePodcast(podcast_title)
 
-	for _, episode := range episodes {
-		fmt.Println("Episode: ", episode.Title, " ", episode.Episode_id)
-	}
-	
-	podcast, err := db.GetPodcast(2)
-	if err != nil {
-		fmt.Println("Error getting podcast: ", err)
-		return
-	}
 
-	fmt.Println(podcast.Title, podcast.RssFeed)
 
-	podcast_url := "https://anchor.fm/s/101ec0f34/podcast/rss"
-
-	// updated, err := db.podcastFromFeed(podcast_url)
-
-	newEpisodes, err := db.FindNewEpisodes(podcast_url)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	for _, episode := range newEpisodes {
-		fmt.Println("title:", episode.Title)
-	}
 
 
 	
