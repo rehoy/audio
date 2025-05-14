@@ -16,17 +16,11 @@
 - [x] chronolocgically sorted and options for how to sort
 - prettify all the css
 - user log in page?
-- add download button
+- [x]add download button
 - update podcasts and in profile page update individual?
 - download button for individual episdoe and for all
-- websockets for large downloads
-- limit the size of modal
+- websockets for large downloads?
+- limit the size of modal? Fix up modal size is to big and 
 
-### right now
-- add to unwatched 
-    - get current episode sfrom series
-    - add to db
-    - get new episode sfrom series again 
-    - compare then add discrepancy to unwatched 
-
+- routing. The entire website is stateless right now
 

@@ -8,15 +8,8 @@
 <body>
     <div class="profile-container">
         <!-- Profile Header -->
-        <div class="profile-header">
-            <div class="profile-image">
-                <img src="https://d3t3ozftmdmh3i.cloudfront.net/production/podcast_uploaded_nologo/1225081/1225081-1561753928917-20f4bd4a91422.jpg" alt="Profile Image">
-            </div>
-            <div class="profile-info">
-                <h1>Name</h1>
-                <p>email@example.com</p>
-                <p>Joined: YYYY-MM-DD</p>
-            </div>
+        <div class="profile-header" hx-get="/profile-header?user-id=1" hx-swap="innerHTML" hx-trigger="load">
+
         </div>
 
 
@@ -40,11 +33,7 @@
         </div>
     </div>
 
-    <div>
-        <button hx-get="/updated" hx-trigger="click" hx-target="#up-up-up">Update Podcasts</button>
-        <div id="up-up-up"></div>
-
-    </div>
+    <div id="podcast-response"></div>
 
     <script>
         document.querySelector('#add-podcast-form').addEventListener('htmx:responseError', function (event) {

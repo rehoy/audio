@@ -477,6 +477,45 @@ func (s *Server) downloadHandler(w http.ResponseWriter, r *http.Request) {
     }
 }
 
+func (s *Server) ProfileHeaderHandler(w https.ResponseWriter, r *http.Request) {
+	tmpl, err := template.ParseFiles(s.TemplateDirectory + "/profile/" + "header.html")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	query := r.URL.Query()
+	user_id := query.Get("user_id")
+	if user_id == "" {
+		http.Error(w, "Missing user_id", http.StatusBadRequest)
+		return
+	}
+
+	user_id_int, err := strconv.Atoi(user_id)
+	if err != nil {
+		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+		return
+	}
+
+	user, err := s.DB.GetUserByID(user_id_int)
+	if err != nil {	
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	
+
+
+	w.Header().Set("content-type", "text/html")
+	err = tmpl.Execute(w, nil)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+
+}
+
 
 
 

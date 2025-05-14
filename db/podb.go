@@ -31,6 +31,15 @@ type Podcast struct {
 	RssFeed     string
 }
 
+type User struct {
+	name string
+	email string
+	user_id int
+	avatarurl string
+	created_at time.Time
+	updated_at time.Time
+}
+
 func (db *DB) Check() {
 	var version string
 
@@ -648,4 +657,20 @@ func (db *DB) GetPodcast(id int) (Podcast, error) {
 	podcast.Episodes = episodes
 
 	return podcast, nil
+}
+
+func (db *DB) GetUserByID(userID int) (User, error) {
+
+	user := User{}
+
+	query := "SElECT user_id, name, email, avatarurl, created_at FROM users WHERE user_id = ?"
+	err := db.conn.QueryRow(query, userID).Scan(&user.user_id, &user.name, &user.email, &user.avatarurl, &user.created_at)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return User{}, fmt.Errorf("no user found with ID %d", userID)
+		}
+		return User{}, fmt.Errorf("error querying user: %v", err)
+	}
+	return user, nil
+	
 }
