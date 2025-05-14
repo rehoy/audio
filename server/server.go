@@ -477,30 +477,7 @@ func (s *Server) downloadHandler(w http.ResponseWriter, r *http.Request) {
     }
 }
 
-func (s *Server) updateHandler(w http.ResponseWriter, r *http.Request) {
-	tmpl, err := template.ParseFiles(s.TemplateDirectory + "/profile/" + "updates.html")
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	fmt.Println("What is not done here is not to be squandered")
 
-	episodeMap, nil := s.DB.Update()
-	fmt.Println("Episode map:", episodeMap)
-
-	if err != nil {
-		fmt.Println("Error getting episodes in updateHandler")
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("content-type", "text/html")
-	err = tmpl.Execute(w, episodeMap)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-}
 
 
 
@@ -520,6 +497,6 @@ func (s *Server) SetupServer(folder string) {
 	http.HandleFunc("/profile", s.profileHandler)
 	http.HandleFunc("/podcast-overview", s.overviewHandler)
 	http.HandleFunc("/podcast-container", s.podcastHandler)
-	http.HandleFunc("/updated", s.updateHandler)
+
 
 }

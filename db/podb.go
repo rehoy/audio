@@ -557,6 +557,9 @@ func (db *DB) AddNewEpisodes(rssFeed string) ([]Episode, error) {
 
 	podcast, _ := db.PodcastFromFeed(rssFeed)
 	seriesID, err := db.GetSeriesIDByName(podcast.Title)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get series ID: %w", err)
+	}
 
 	    // 5. Insert the new episodes into the database
 	tx, err := db.conn.Begin()
@@ -565,14 +568,17 @@ func (db *DB) AddNewEpisodes(rssFeed string) ([]Episode, error) {
 	}
 	defer tx.Rollback()
 
+	errs := make([]string, 0)
 	for _, episode := range newEpisodes {
-		_, err := tx.Exec("INSERT INTO episodes (title, pubdate, description, audiourl, imageurl, series_id) VALUES (?, ?, ?, ?, ?, ?)", episode.Title, episode.Pubdate, episode.Description, episode.AudioURL, episode.ImageURL, seriesID)
+		_, err := db.insertEpisode(episode, seriesID)
 		if err != nil {
-			return nil, fmt.Errorf("failed to insert episode: %w", err)
+			errs = append(errs, episode.Title)
 		}
 	}
 
-	 
+	if len(errs) > 0 {
+		return nil, fmt.Errorf("failed to insert episodes: %v", errs)
+	}
 
 	err = tx.Commit()
 	if err != nil {
