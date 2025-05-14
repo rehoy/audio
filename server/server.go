@@ -424,6 +424,8 @@ func (s *Server) overviewHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		
 		s.renderPodcastOverview(w, tmpl)
+	case http.MethodPut:
+		
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -477,15 +479,16 @@ func (s *Server) downloadHandler(w http.ResponseWriter, r *http.Request) {
     }
 }
 
-func (s *Server) ProfileHeaderHandler(w https.ResponseWriter, r *http.Request) {
-	tmpl, err := template.ParseFiles(s.TemplateDirectory + "/profile/" + "header.html")
+func (s *Server) ProfileHeaderHandler(w http.ResponseWriter, r *http.Request) {
+	tmpl, err := template.ParseFiles(s.TemplateDirectory + "/profile/" + "profile-header.html")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	query := r.URL.Query()
-	user_id := query.Get("user_id")
+	user_id := query.Get("user-id")
+	fmt.Println("user_id:", user_id)
 	if user_id == "" {
 		http.Error(w, "Missing user_id", http.StatusBadRequest)
 		return
@@ -503,11 +506,8 @@ func (s *Server) ProfileHeaderHandler(w https.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	
-
-
 	w.Header().Set("content-type", "text/html")
-	err = tmpl.Execute(w, nil)
+	err = tmpl.Execute(w, user)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -515,10 +515,6 @@ func (s *Server) ProfileHeaderHandler(w https.ResponseWriter, r *http.Request) {
 
 
 }
-
-
-
-
 
 func (s *Server) SetupServer(folder string) {
 	s.TemplateDirectory = folder
@@ -536,6 +532,7 @@ func (s *Server) SetupServer(folder string) {
 	http.HandleFunc("/profile", s.profileHandler)
 	http.HandleFunc("/podcast-overview", s.overviewHandler)
 	http.HandleFunc("/podcast-container", s.podcastHandler)
+	http.HandleFunc("/profile-header", s.ProfileHeaderHandler)
 
 
 }

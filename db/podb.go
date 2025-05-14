@@ -32,12 +32,12 @@ type Podcast struct {
 }
 
 type User struct {
-	name string
-	email string
-	user_id int
-	avatarurl string
-	created_at time.Time
-	updated_at time.Time
+	Name string
+	Email string
+	User_id int
+	Avatarurl string
+	Created_at string
+	Updated_at string
 }
 
 func (db *DB) Check() {
@@ -663,8 +663,8 @@ func (db *DB) GetUserByID(userID int) (User, error) {
 
 	user := User{}
 
-	query := "SElECT user_id, name, email, avatarurl, created_at FROM users WHERE user_id = ?"
-	err := db.conn.QueryRow(query, userID).Scan(&user.user_id, &user.name, &user.email, &user.avatarurl, &user.created_at)
+	query := "SElECT user_id, username, email, avatarurl, created_at FROM users WHERE user_id = ?"
+	err := db.conn.QueryRow(query, userID).Scan(&user.User_id, &user.Name, &user.Email, &user.Avatarurl, &user.Created_at)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return User{}, fmt.Errorf("no user found with ID %d", userID)

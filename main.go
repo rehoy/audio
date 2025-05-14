@@ -50,27 +50,28 @@ func main() {
 // 	db := podb.NewDB()
 
 // 	defer db.Close()
-// 	fmt.Println("Database opened")
+// 	// fmt.Println("Database opened")
 
-// 	for i := 0; i < 10; i++ {
-// 		series_name, err := db.SeriesNameFromID(i)
-// 		if err != nil {
-// 			continue
-// 		}
+// 	// for i := 0; i < 10; i++ {
+// 	// 	series_name, err := db.SeriesNameFromID(i)
+// 	// 	if err != nil {
+// 	// 		continue
+// 	// 	}
 
-// 		fmt.Println("Series Name: ", series_name)
+// 	// 	fmt.Println("Series Name: ", series_name)
+// 	// }
+
+// 	// podcast_title := "Not Another D&D Podcast"
+// 	// db.UpdatePodcast(podcast_title)
+
+// 	user, err := db.GetUserByID(1)
+// 	if err != nil {
+// 		fmt.Println("Error getting user:", err)
+// 		return
 // 	}
-
-// 	podcast_title := "Not Another D&D Podcast"
-// 	db.UpdatePodcast(podcast_title)
-
-
-
-
-
-	
-
-
+// 	fmt.Println("User ID:", user.User_id)
+// 	fmt.Println("User Name:", user.Name)
+// 	fmt.Println("User Email:", user.Email)
 
 
 // }

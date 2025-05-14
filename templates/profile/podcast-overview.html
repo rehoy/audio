@@ -2,7 +2,11 @@
     <h2>Your Podcasts</h2>
     <ul>
     {{range .Series}}
-        <li><div>{{.}}</div><button class="delete-button" hx-delete="/podcast-overview?name={{urlquery .}}" hx-target="#podcast-overview">delete</button></li>
+        <li>
+            <div>{{.}}</div>
+            <button class="update-button">update</button>
+            <button class="delete-button" hx-delete="/podcast-overview?name={{urlquery .}}" hx-target="#podcast-overview">delete</button>
+        </li>
     {{end}}
     </ul>
 </div>

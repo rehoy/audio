@@ -262,6 +262,14 @@ audio::-webkit-media-controls-panel:hover {
     color: #666;
 }
 
+.profile-picture {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #ddd;
+}
+
 .podcast-list {
     margin-top: 20px;
 }

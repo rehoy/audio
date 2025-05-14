@@ -8,7 +8,11 @@
 <body>
     <div class="profile-container">
         <!-- Profile Header -->
-        <div class="profile-header" hx-get="/profile-header?user-id=1" hx-swap="innerHTML" hx-trigger="load">
+        <div class="profile-header" 
+             hx-get="/profile-header?user-id=1" 
+             hx-swap="innerHTML" 
+             hx-trigger="load"
+             hx-on="htmx:responseError: if (event.detail.xhr.status >= 400) { this.innerText = 'Error loading profile header'; }"></div>
 
         </div>
 
