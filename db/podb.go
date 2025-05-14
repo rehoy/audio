@@ -8,7 +8,7 @@ import (
 	"os"
 	"sort"
 	"strings"
-	"sync"
+	// "sync"
 	"time"
 
 	_ "github.com/glebarez/go-sqlite"
@@ -61,7 +61,7 @@ func NewDB() *DB {
 
 func (db *DB) AddPodcastToDB(rssFeed, database string) error {
 
-	podcast, err := db.podcastFromFeed(rssFeed)
+	podcast, err := db.PodcastFromFeed(rssFeed)
 	if err != nil {
 		return fmt.Errorf("failed to parse podcast feed: %w", err)
 	}
@@ -155,7 +155,7 @@ func (db *DB) pubdateToTimeStamp(pubdate string) (time.Time, error) {
 	return time.Time{}, fmt.Errorf("cannot parse pubdate %q: %v", pubdate, err)
 }
 
-func (db *DB) podcastFromFeed(feedURL string) (Podcast, error) {
+func (db *DB) PodcastFromFeed(feedURL string) (Podcast, error) {
 	fp := gofeed.NewParser()
 	feed, err := fp.ParseURL(feedURL)
 	if err != nil {
@@ -197,7 +197,7 @@ func (db *DB) podcastFromFeed(feedURL string) (Podcast, error) {
 
 func (db *DB) WritePodcastsToJSON(feedURL, jsonPath string) error {
 
-	podcast, err := db.podcastFromFeed(feedURL)
+	podcast, err := db.PodcastFromFeed(feedURL)
 	if err != nil {
 		return fmt.Errorf("failed to parse podcast feed: %w", err)
 	}
@@ -234,12 +234,11 @@ func (db *DB) WritePodcastsToJSON(feedURL, jsonPath string) error {
 	return nil
 }
 
-func (db *DB) seriesNameFromID(seriesID int) (string, error) {
+func (db *DB) SeriesNameFromID(seriesID int) (string, error) {
 	var title string
-	query := "SELECT title FROM series WHERE id = ?"
+	query := "SELECT title FROM series WHERE series_id = ?"
 	err := db.conn.QueryRow(query, seriesID).Scan(&title)
 	if err != nil {
-		fmt.Println(seriesID)
 		return "", fmt.Errorf("Error querying series name: %v, seriesID: %d", err, seriesID)
 	}
 	return title, nil
@@ -394,7 +393,7 @@ func (db *DB) DeleteSeries(series_id int) error {
 }
 
 func (db *DB) compareEpisodeList(newRssFeed string) ([]Episode, error) {
-    newPodcast, err := db.podcastFromFeed(newRssFeed)
+    newPodcast, err := db.PodcastFromFeed(newRssFeed)
     if err != nil {
         return nil, fmt.Errorf("failed to parse podcast feed: %w", err)
     }
@@ -418,8 +417,8 @@ func (db *DB) compareEpisodeList(newRssFeed string) ([]Episode, error) {
     return newEpisodes, nil
 }
 
-func (db *DB) AddNewEpisodes(rssFeed string) ([]Episode, error) {
-	newPodcast, err := db.podcastFromFeed(rssFeed)
+func (db *DB) FindNewEpisodes(rssFeed string) ([]Episode, error) {
+	newPodcast, err := db.PodcastFromFeed(rssFeed)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse podcast feed: %w", err)
 	}
@@ -448,6 +447,19 @@ func (db *DB) AddNewEpisodes(rssFeed string) ([]Episode, error) {
         }
 	}
 
+	return newEpisodes, nil
+}
+
+func (db *DB) AddNewEpisodes(rssFeed string) ([]Episode, error) {
+	newEpisodes, err := db.FindNewEpisodes(rssFeed)
+
+	if err != nil {
+		return nil, err
+	}
+
+	podcast, _ := db.PodcastFromFeed(rssFeed)
+	seriesID, err := db.GetSeriesIDByName(podcast.Title)
+
 	    // 5. Insert the new episodes into the database
 	tx, err := db.conn.Begin()
 	if err != nil {
@@ -461,6 +473,8 @@ func (db *DB) AddNewEpisodes(rssFeed string) ([]Episode, error) {
 			return nil, fmt.Errorf("failed to insert episode: %w", err)
 		}
 	}
+
+	 
 
 	err = tx.Commit()
 	if err != nil {
@@ -511,70 +525,23 @@ func (db *DB) getSeriesMap() (map[string]Podcast, error) {
 
 }
 
-func (db *DB) CheckForUpdates() (map[string][]Episode, error) {
+func (db *DB) GetPodcast(id int) (Podcast, error) {
+	query := "SELECT series_id, title, description, feedurl FROM series WHERE series_id = ?"
+	row := db.conn.QueryRow(query, id)
 
-	seriesMap, _ := db.getSeriesMap()
-	episodesMap := make(map[string][]Episode)
-
-	var wg sync.WaitGroup
-	var mu sync.Mutex
-
-	for _, podcast := range seriesMap {
-		wg.Add(1)
-		go func(podcast Podcast) {
-			defer wg.Done()
-			newEpisodes, err := db.AddNewEpisodes(podcast.RssFeed)
-			if err != nil {
-				fmt.Println("Error adding new episodes:", err, podcast.Title)
-			} else {
-				mu.Lock()
-				episodesMap[podcast.Title] = newEpisodes
-				mu.Unlock()	
-			}
-		}(podcast)
-	}
-	wg.Wait()
-
-	return episodesMap, nil
-
-}
-
-func (db *DB) addUnwatchedEpisodes(episodesMap map[string][]Episode) error {
-	user_id := 1
-	for seriesTitle, episodes := range episodesMap {
-		seriesID, err := db.GetSeriesIDByName(seriesTitle)
-		if err != nil {
-			return fmt.Errorf("failed to get series ID: %w", err)
-		}
-
-		for _, episode := range episodes {
-			_, err := db.conn.Exec("INSERT INTO unwatched (user_id, episode_id, series_id) VALUES (?, ?)", user_id, episode.Episode_id, seriesID)
-			if err != nil {
-				return fmt.Errorf("failed to insert unwatched episode: %w", err)
-			}
-		}
-	}
-
-	return nil
-}
-
-func (db *DB) Update() (map[string][]Episode, error) {
-	episodesMap, err := db.CheckForUpdates()
+	var podcast Podcast
+	err := row.Scan(&podcast.Series_id, &podcast.Title, &podcast.Description, &podcast.RssFeed)
 	if err != nil {
-		fmt.Println("Error checking for updates:", err)
-		return nil, err
+		fmt.Println("Error getting series:", err)
+		return Podcast{}, err
 	}
 
-	err = db.addUnwatchedEpisodes(episodesMap)
+	episodes, err := db.GetEpisodesFromSeries(id)
 	if err != nil {
-		fmt.Println("Error adding unwatched episodes:", err)
-		return nil, err
+		fmt.Println("Error getting episodes:", err)
+		return Podcast{}, err
 	}
-	fmt.Println("Added unwatched episodes to the database.")
+	podcast.Episodes = episodes
 
-	for seriesTitle, episodes := range episodesMap {
-		fmt.Printf("Podcast: %s, New Episodes: %d\n", seriesTitle, len(episodes))
-	}
-
-	return episodesMap, nil
+	return podcast, nil
 }
