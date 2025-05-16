@@ -463,8 +463,7 @@ func (db *DB) FindNewEpisodes(rssFeed string) ([]Episode, error) {
 func (db *DB) AddEpisodes(episodes []Episode, series_id int) error {
 	errors := make([]string, 0)
 	for _, episode := range episodes {
-		query := "INSERT INTO episodes (title, pubdate, description, audiourl, imageurl, series_id) VALUES (?, ?, ?, ?, ?, ?)"
-		_, err := db.conn.Exec(query, episode.Title, episode.Pubdate, episode.Description, episode.AudioURL, episode.ImageURL, series_id)
+		_, err := db.insertEpisode(episode, series_id)
 		if err != nil {
 			fmt.Println("Error inserting episode:", err)
 			// return fmt.Errorf("Error inserting episode: %v", err)
@@ -604,38 +603,6 @@ func (db *DB) AddNewEpisodes(rssFeed string) ([]Episode, error) {
 	}
 
 	return newEpisodes, nil
-}
-
-func (db *DB) getSeriesMap() (map[string]Podcast, error) {
-
-	seriesMap := make(map[string]Podcast)
-
-	series, err := db.GetSeries()
-
-	if err != nil {
-		fmt.Println("Error getting series:", err)
-		return nil, err
-	}
-
-	for _, seriesName := range series {
-		seriesID, err := db.GetSeriesIDByName(seriesName)
-		if err != nil {
-			return nil, err
-		}
-
-		var podcast Podcast
-		query := "select series_id, title, description, feedurl from series where series_id = ?"
-		err = db.conn.QueryRow(query, seriesID).Scan(&podcast.Series_id, &podcast.Title, &podcast.Description, &podcast.RssFeed)
-
-		if err != nil {
-			return nil, err
-		}
-
-		seriesMap[podcast.Title] = podcast
-	}
-
-	return seriesMap, nil
-
 }
 
 func (db *DB) GetPodcast(id int) (Podcast, error) {

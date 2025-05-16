@@ -425,6 +425,60 @@ func (s *Server) overviewHandler(w http.ResponseWriter, r *http.Request) {
 		
 		s.renderPodcastOverview(w, tmpl)
 	case http.MethodPut:
+		query := r.URL.Query()
+		name := query.Get("name")
+
+		error_msg := ""
+		status_code := http.StatusOK
+
+		if name == "" {
+			error_msg = "Missing name"
+			status_code = http.StatusBadRequest
+		}
+
+		err := s.DB.UpdatePodcast(name)
+		if err != nil {
+			error_msg = "Error updating podcast"
+			status_code = http.StatusInternalServerError
+		}
+
+		errorOjb := struct {
+			ErrorMessage string
+			StatusCode int
+		}{}
+
+		if error_msg != "" {
+			tmpl, err := template.ParseFiles("templates/profile/error-updating.html")
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return 
+			}
+			w.Header().Set("content-type", "text/html")
+			errorOjb.ErrorMessage = error_msg
+			errorOjb.StatusCode = status_code
+
+			err = tmpl.Execute(w, errorOjb)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		} else {
+			tmpl, err := template.ParseFiles("templates/profile/error-updating.html")
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			w.Header().Set("content-type", "text/html")
+			errorOjb.ErrorMessage = fmt.Sprintf("Podcast %s updated successfully", name)
+			errorOjb.StatusCode = 200
+
+			err = tmpl.Execute(w, errorOjb)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		}
+
 		
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)

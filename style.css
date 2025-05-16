@@ -5,6 +5,9 @@ body {
     flex-direction: column;
     overflow: hidden;
     font-family: Arial, sans-serif;
+    background: #5276bd;
+    /* cool dark blue */
+    color: #f0f4fa;
 }
 
 button {
@@ -312,6 +315,20 @@ audio::-webkit-media-controls-panel:hover {
 .delete-button:hover {
     background-color: #c0392b;
 }
+
+.update-button {
+    background-color: #48ff00;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.delete-button:hover {
+    background-color: #48ff00;
+}
+
 
 .add-podcast {
     margin-top: 20px;
